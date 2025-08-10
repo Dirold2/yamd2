@@ -1,0 +1,6 @@
+import { HttpClientInterface, Method, Response, RequestInterface } from "../Types/request";
+export default class HttpClient implements HttpClientInterface {
+    _sendRequest(method: Method, request: RequestInterface): Promise<Response>;
+    get(request: RequestInterface): Promise<Response>;
+    post(request: RequestInterface): Promise<Response>;
+}

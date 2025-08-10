@@ -1,0 +1,624 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const index_1 = require("./PreparedRequest/index");
+const config_1 = __importDefault(require("./PreparedRequest/config"));
+const HttpClient_1 = __importDefault(require("./Network/HttpClient"));
+const fast_xml_parser_1 = require("fast-xml-parser");
+const crypto = __importStar(require("crypto"));
+const ClckApi_1 = __importDefault(require("./ClckApi"));
+class YMApi {
+    constructor(httpClient = new HttpClient_1.default(), config = config_1.default) {
+        this.httpClient = httpClient;
+        this.config = config;
+        this.user = {
+            password: "",
+            token: "",
+            uid: 0,
+            username: ""
+        };
+    }
+    getAuthHeader() {
+        return {
+            Authorization: `OAuth ${this.user.token}`
+        };
+    }
+    getFakeDeviceHeader() {
+        return {
+            "X-Yandex-Music-Device": "os=unknown; os_version=unknown; manufacturer=unknown; model=unknown; clid=; device_id=unknown; uuid=unknown"
+        };
+    }
+    /**
+     * Authentication
+     * @returns access_token & uid
+     */
+    async init(config) {
+        // Skip auth if access_token and uid are present
+        if (config.access_token && config.uid) {
+            this.user.token = config.access_token;
+            this.user.uid = config.uid;
+            return {
+                access_token: config.access_token,
+                uid: config.uid
+            };
+        }
+        if (!config.username || !config.password) {
+            throw new Error("username && password || access_token && uid must be set");
+        }
+        this.user.username = config.username;
+        this.user.password = config.password;
+        const data = (await this.httpClient.get((0, index_1.authRequest)().setPath("/token").setQuery({
+            grant_type: "password",
+            username: this.user.username,
+            password: this.user.password,
+            client_id: this.config.oauth.CLIENT_ID,
+            client_secret: this.config.oauth.CLIENT_SECRET
+        })));
+        this.user.token = data.access_token;
+        this.user.uid = data.uid;
+        return data;
+    }
+    /**
+     * GET: /account/status
+     * @returns account status for current user
+     */
+    getAccountStatus() {
+        const request = (0, index_1.apiRequest)()
+            .setPath("/account/status")
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /feed
+     * @returns the user's feed
+     */
+    getFeed() {
+        const request = (0, index_1.apiRequest)()
+            .setPath("/feed")
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     *
+     * @param ChartType Type of chart.
+     * GET: /landing3/chart/{ChartType}
+     * @returns chart of songs.
+     */
+    getChart(ChartType) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/landing3/chart/${ChartType}`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /landing3/new-playlists
+     * @returns new playlists (for you).
+     */
+    getNewPlaylists() {
+        const request = (0, index_1.apiRequest)()
+            .setPath("/landing3/new-playlists")
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /landing3/new-releases
+     * @returns new releases.
+     */
+    getNewReleases() {
+        const request = (0, index_1.apiRequest)()
+            .setPath("/landing3/new-releases")
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /landing3/podcasts
+     * @returns all podcasts.
+     */
+    getPodcasts() {
+        const request = (0, index_1.apiRequest)()
+            .setPath("/landing3/podcasts")
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /genres
+     * @returns a list of music genres
+     */
+    getGenres() {
+        const request = (0, index_1.apiRequest)()
+            .setPath("/genres")
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /search
+     * Search artists, tracks, albums.
+     * @returns Every {type} with query in it's title.
+     */
+    search(query, options = {}) {
+        const type = !options.type ? "all" : options.type;
+        const page = String(!options.page ? 0 : options.page);
+        const nococrrect = String(options.nococrrect == null ? false : options.nococrrect);
+        const request = (0, index_1.apiRequest)()
+            .setPath("/search")
+            .addHeaders(this.getAuthHeader())
+            .setQuery({
+            type,
+            text: query,
+            page,
+            nococrrect
+        });
+        if (options.pageSize !== void 0) {
+            request.addQuery({ pageSize: String(options.pageSize) });
+        }
+        return this.httpClient.get(request);
+    }
+    /**
+     * @param query Query
+     * @param options Options
+     * @returns Every artist with query in it's title.
+     */
+    searchArtists(query, options = {}) {
+        return this.search(query, {
+            ...options,
+            type: "artist"
+        });
+    }
+    /**
+     * @param query Query
+     * @param options Options
+     * @returns Every track with query in it's title.
+     */
+    searchTracks(query, options = {}) {
+        return this.search(query, {
+            ...options,
+            type: "track"
+        });
+    }
+    /**
+     * @param query Query
+     * @param options Options
+     * @returns Every album with query in it's title.
+     */
+    searchAlbums(query, options = {}) {
+        return this.search(query, {
+            ...options,
+            type: "album"
+        });
+    }
+    /**
+     * @param query Query
+     * @param options Options
+     * @returns Everything with query in it's title.
+     */
+    searchAll(query, options = {}) {
+        return this.search(query, {
+            ...options,
+            type: "all"
+        });
+    }
+    /**
+     * GET: /users/[user_id]/playlists/list
+     * @returns a user's playlists.
+     */
+    getUserPlaylists(user = null) {
+        const uid = [null, 0, ""].includes(user) ? this.user.uid : user;
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${uid}/playlists/list`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    getPlaylist(playlistId, user = null) {
+        const uid = [null, 0, ""].includes(user) ? this.user.uid : user;
+        let request;
+        if (typeof playlistId === "number") {
+            request = (0, index_1.apiRequest)()
+                .setPath(`/users/${uid}/playlists/${playlistId}`)
+                .addHeaders(this.getAuthHeader());
+        }
+        else {
+            if (playlistId.includes("/playlists/")) {
+                playlistId = playlistId.replace("/playlists/", "/playlist/");
+            }
+            request = (0, index_1.apiRequest)()
+                .setPath(`/playlist/${playlistId}`)
+                .addHeaders(this.getAuthHeader())
+                .addQuery({ richTracks: "true" });
+        }
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /playlist/[playlist_uuid]
+     * @returns a playlist without tracks
+     */
+    // Kept for backward compatibility; now delegates to getPlaylist
+    getPlaylistNew(playlistId) {
+        return this.getPlaylist(playlistId);
+    }
+    /**
+     * GET: /users/[user_id]/playlists
+     * @returns an array of playlists with tracks
+     */
+    getPlaylists(playlists, user = null, options = {}) {
+        const uid = [null, 0, ""].includes(user) ? this.user.uid : user;
+        const kinds = playlists.join();
+        const mixed = String(options.mixed == null ? false : options.mixed);
+        const richTracks = String(options["rich-tracks"] == null ? false : options["rich-tracks"]);
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${uid}/playlists`)
+            .addHeaders(this.getAuthHeader())
+            .setQuery({
+            kinds,
+            mixed,
+            "rich-tracks": richTracks
+        });
+        return this.httpClient.get(request);
+    }
+    /**
+     * POST: /users/[user_id]/playlists/create
+     * Create a new playlist
+     * @returns Playlist
+     */
+    createPlaylist(name, options = {}) {
+        const visibility = !options.visibility ? "private" : options.visibility;
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${this.user.uid}/playlists/create`)
+            .addHeaders(this.getAuthHeader())
+            .setBodyData({
+            title: name,
+            visibility
+        });
+        return this.httpClient.post(request);
+    }
+    /**
+     * POST: /users/[user_id]/playlists/[playlist_kind]/delete
+     * Remove a playlist
+     * @returns "ok" | string
+     */
+    removePlaylist(playlistId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${this.user.uid}/playlists/${playlistId}/delete`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.post(request);
+    }
+    /**
+     * POST: /users/[user_id]/playlists/[playlist_kind]/name
+     * Change playlist name
+     * @returns Playlist
+     */
+    renamePlaylist(playlistId, name) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${this.user.uid}/playlists/${playlistId}/name`)
+            .addHeaders(this.getAuthHeader())
+            .setBodyData({
+            value: name
+        });
+        return this.httpClient.post(request);
+    }
+    /**
+     * POST: /users/[user_id]/playlists/[playlist_kind]/change-relative
+     * Add tracks to the playlist
+     * @returns Playlist
+     */
+    addTracksToPlaylist(playlistId, tracks, revision, options = {}) {
+        const at = !options.at ? 0 : options.at;
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${this.user.uid}/playlists/${playlistId}/change-relative`)
+            .addHeaders(this.getAuthHeader())
+            .setBodyData({
+            diff: JSON.stringify([
+                {
+                    op: "insert",
+                    at,
+                    tracks: tracks
+                }
+            ]),
+            revision: String(revision)
+        });
+        return this.httpClient.post(request);
+    }
+    /**
+     * POST: /users/[user_id]/playlists/[playlist_kind]/change-relative
+     * Remove tracks from the playlist
+     * @returns Playlist
+     */
+    removeTracksFromPlaylist(playlistId, tracks, revision, options = {}) {
+        const from = !options.from ? 0 : options.from;
+        const to = !options.to ? tracks.length : options.to;
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${this.user.uid}/playlists/${playlistId}/change-relative`)
+            .addHeaders(this.getAuthHeader())
+            .setBodyData({
+            diff: JSON.stringify([
+                {
+                    op: "delete",
+                    from,
+                    to,
+                    tracks
+                }
+            ]),
+            revision: String(revision)
+        });
+        return this.httpClient.post(request);
+    }
+    /**
+     * GET: /tracks/[track_id]
+     * @returns an array of playlists with tracks
+     */
+    getTrack(trackId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/tracks/${trackId}`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /tracks/[track_id]
+     * @returns single track
+     */
+    async getSingleTrack(trackId) {
+        const tracks = await this.getTrack(trackId);
+        if (tracks.length !== 1) {
+            throw new Error(`More than one result received`);
+        }
+        return tracks.pop();
+    }
+    /**
+     * GET: /tracks/[track_id]/supplement
+     * @returns an array of playlists with tracks
+     */
+    getTrackSupplement(trackId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/tracks/${trackId}/supplement`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /tracks/[track_id]/download-info
+     * @returns track download information
+     */
+    getTrackDownloadInfo(trackId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/tracks/${trackId}/download-info`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * @returns track direct link
+     */
+    async getTrackDirectLink(trackDownloadUrl, short = false) {
+        const request = (0, index_1.directLinkRequest)(trackDownloadUrl);
+        const xml = await this.httpClient.get(request);
+        const parser = new fast_xml_parser_1.XMLParser({ ignoreAttributes: false });
+        const parsedXml = parser.parse(xml);
+        const host = parsedXml["download-info"].host;
+        const path = parsedXml["download-info"].path;
+        const ts = parsedXml["download-info"].ts;
+        const s = parsedXml["download-info"].s;
+        const sign = crypto
+            .createHash("md5")
+            .update("XGRlBW9FXlekgbPrRHuSiA" + path.slice(1) + s)
+            .digest("hex");
+        const link = `https://${host}/get-mp3/${sign}/${ts}${path}`;
+        if (short)
+            return await (0, ClckApi_1.default)(link);
+        else
+            return link;
+    }
+    /**
+     * @returns track sharing link
+     */
+    async getTrackShareLink(track) {
+        let albumid = 0, trackid = 0;
+        if (typeof track === "object") {
+            albumid = track.albums[0].id;
+            trackid = track.id;
+        }
+        else {
+            albumid = (await this.getSingleTrack(track)).albums[0].id;
+            trackid = track;
+        }
+        return `https://music.yandex.ru/album/${albumid}/track/${trackid}`;
+    }
+    /**
+     * GET: /tracks/{track_id}/similar
+     * @returns simmilar tracks
+     */
+    getSimilarTracks(trackId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/tracks/${trackId}/similar`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /albums/[album_id]
+     * @returns an album
+     */
+    getAlbum(albumId, withTracks = false) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/albums/${albumId}${withTracks ? "/with-tracks" : ""}`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    getAlbumWithTracks(albumId) {
+        return this.getAlbum(albumId, true);
+    }
+    /**
+     * GET: /albums
+     * @returns an albums
+     */
+    getAlbums(albumIds) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/albums`)
+            .setBodyData({ albumIds: albumIds.join() })
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.post(request);
+    }
+    /**
+     * GET: /artists/[artist_id]
+     * @returns an artist
+     */
+    getArtist(artistId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/artists/${artistId}`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /artists
+     * @returns an artists
+     */
+    getArtists(artistIds) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/artists`)
+            .setBodyData({ artistIds: artistIds.join() })
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.post(request);
+    }
+    /**
+     * GET: /artists/[artist_id]/tracks
+     * @returns Tracks by artist id
+     */
+    getArtistTracks(artistId, options = {}) {
+        const page = String(!options.page ? 0 : options.page);
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/artists/${artistId}/tracks`)
+            .addHeaders(this.getAuthHeader())
+            .setQuery({
+            page
+        });
+        if (options.pageSize !== void 0) {
+            request.addQuery({ pageSize: String(options.pageSize) });
+        }
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /users/{userId}/likes/tracks
+     * @param userId User id. Nullable.
+     * @returns Liked Tracks
+     */
+    getLikedTracks(userId = null) {
+        const uid = [null, 0, ""].includes(userId) ? this.user.uid : userId;
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${uid}/likes/tracks`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /users/{userId}/dislikes/tracks
+     * @param userId User id. Nullable.
+     * @returns Disliked Tracks
+     */
+    getDislikedTracks(userId = null) {
+        const uid = [null, 0, ""].includes(userId) ? this.user.uid : userId;
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/users/${uid}/dislikes/tracks`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /rotor/stations/list
+     * @param language Language of station list
+     * @returns list of stations.
+     */
+    getAllStationsList(language) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/rotor/stations/list`)
+            .addHeaders(this.getAuthHeader())
+            .setQuery(language ? { language } : {});
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /rotor/stations/dashboard
+     * REQUIRES YOU TO BE LOGGED IN!
+     * @returns list of recomended stations.
+     */
+    getRecomendedStationsList() {
+        const request = (0, index_1.apiRequest)()
+            .setPath("/rotor/stations/dashboard")
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /rotor/station/{stationId}/tracks
+     * REQUIRES YOU TO BE LOGGED IN!
+     * @param stationId Id of station. Example: user:onyourwave
+     * @param queue Unique id of prev track.
+     * @returns tracks from station.
+     */
+    getStationTracks(stationId, queue) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/rotor/station/${stationId}/tracks`)
+            .addHeaders(this.getAuthHeader())
+            .addQuery(queue ? { queue } : {});
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /rotor/station/{stationId}/info
+     * @param stationId Id of station. Example: user:onyourwave
+     * @returns info of the station.
+     */
+    getStationInfo(stationId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/rotor/station/${stationId}/info`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /queues
+     * @returns queues without tracks
+     */
+    getQueues() {
+        const request = (0, index_1.apiRequest)()
+            .setPath("/queues")
+            .addHeaders(this.getFakeDeviceHeader())
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+    /**
+     * GET: /queues/{queueId}
+     * @param queueId Queue id.
+     * @returns queue data with(?) tracks.
+     */
+    getQueue(queueId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/queues/${queueId}`)
+            .addHeaders(this.getAuthHeader());
+        return this.httpClient.get(request);
+    }
+}
+exports.default = YMApi;
