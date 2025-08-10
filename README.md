@@ -5,7 +5,7 @@ This is a Node.js wrapper for the [Yandex.Music](http://music.yandex.ru/) API th
 ## Installation
 
 ```sh
-npm install ym-api-meowed
+npm install git+https://github.com/Dirold2/ym-api-meowed-d2.git#__dist__
 ```
 
 ## Usage
