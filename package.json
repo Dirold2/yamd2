@@ -24,6 +24,7 @@
     "yandex.music"
   ],
   "dependencies": {
+    "axios": "^1.11.0",
     "undici": "^7.13.0",
     "fast-xml-parser": "^5.2.5"
   },
