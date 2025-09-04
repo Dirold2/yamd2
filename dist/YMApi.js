@@ -599,6 +599,25 @@ class YMApi {
         return this.httpClient.get(request);
     }
     /**
+     * POST: /rotor/session/new
+     * @param seeds array of station ids e.g. ["user:onyourwave"]
+     * @param includeTracksInResponse whether to include tracks in response
+     */
+    createRotorSession(seeds, includeTracksInResponse = true) {
+        const body = {
+            seeds,
+            ...(includeTracksInResponse !== undefined
+                ? { includeTracksInResponse }
+                : {})
+        };
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/rotor/session/new`)
+            .addHeaders(this.getAuthHeader())
+            .addHeaders({ "content-type": "application/json" })
+            .setBodyData(body);
+        return this.httpClient.post(request);
+    }
+    /**
      * GET: /queues
      * @returns queues without tracks
      */

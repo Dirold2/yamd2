@@ -24,6 +24,7 @@ export type StringResponse = string;
 export type Response = ObjectResponse | StringResponse;
 export interface RequestInterface {
     setPath(path: string): RequestInterface;
+    setHost(host: string): RequestInterface;
     getHeaders(): RequestHeaders;
     setHeaders(headers: RequestHeaders): RequestInterface;
     addHeaders(headers: RequestHeaders): RequestInterface;

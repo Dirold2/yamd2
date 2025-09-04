@@ -48,6 +48,10 @@ class Request {
         this.path = path;
         return this;
     }
+    setHost(host) {
+        this.host = host;
+        return this;
+    }
     getHeaders() {
         return this.headers;
     }

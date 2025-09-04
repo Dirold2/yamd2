@@ -667,4 +667,22 @@ export type QueueResponse = {
     currentIndex?: number;
     modified: string;
 };
+export type RotorSessionCreateBody = {
+    seeds: Array<string>;
+    includeTracksInResponse?: boolean;
+};
+type RotorSeed = {
+    value: string;
+    tag: string;
+    type: string;
+};
+export type RotorSessionCreateResponse = {
+    radioSessionId: string;
+    sequence: Array<StationTrack>;
+    batchId: string;
+    pumpkin: boolean;
+    descriptionSeed?: RotorSeed;
+    acceptedSeeds?: Array<RotorSeed>;
+    terminated?: boolean;
+};
 export {};

@@ -1,4 +1,4 @@
-import { ApiConfig, ApiInitConfig, InitResponse, GetGenresResponse, SearchResponse, Playlist, GetTrackResponse, Language, GetTrackSupplementResponse, GetTrackDownloadInfoResponse, GetFeedResponse, GetAccountStatusResponse, Track, TrackId, SearchOptions, ConcreteSearchOptions, SearchAllResponse, SearchArtistsResponse, SearchTracksResponse, SearchAlbumsResponse, AlbumId, Album, AlbumWithTracks, FilledArtist, Artist, ArtistId, ArtistTracksResponse, DisOrLikedTracksResponse, ChartType, ChartTracksResponse, NewReleasesResponse, NewPlaylistsResponse, PodcastsResponse, SimilarTracksResponse, StationTracksResponse, StationInfoResponse, AllStationsListResponse, RecomendedStationsListResponse, QueuesResponse, QueueResponse } from "./Types";
+import { ApiConfig, ApiInitConfig, InitResponse, GetGenresResponse, SearchResponse, Playlist, GetTrackResponse, Language, GetTrackSupplementResponse, GetTrackDownloadInfoResponse, GetFeedResponse, GetAccountStatusResponse, Track, TrackId, SearchOptions, ConcreteSearchOptions, SearchAllResponse, SearchArtistsResponse, SearchTracksResponse, SearchAlbumsResponse, AlbumId, Album, AlbumWithTracks, FilledArtist, Artist, ArtistId, ArtistTracksResponse, DisOrLikedTracksResponse, ChartType, ChartTracksResponse, NewReleasesResponse, NewPlaylistsResponse, PodcastsResponse, SimilarTracksResponse, StationTracksResponse, StationInfoResponse, AllStationsListResponse, RecomendedStationsListResponse, QueuesResponse, QueueResponse, RotorSessionCreateResponse } from "./Types";
 import { HttpClientInterface } from "./Types/request";
 export default class YMApi {
     private httpClient;
@@ -244,6 +244,12 @@ export default class YMApi {
      * @returns info of the station.
      */
     getStationInfo(stationId: string): Promise<StationInfoResponse>;
+    /**
+     * POST: /rotor/session/new
+     * @param seeds array of station ids e.g. ["user:onyourwave"]
+     * @param includeTracksInResponse whether to include tracks in response
+     */
+    createRotorSession(seeds: Array<string>, includeTracksInResponse?: boolean): Promise<RotorSessionCreateResponse>;
     /**
      * GET: /queues
      * @returns queues without tracks

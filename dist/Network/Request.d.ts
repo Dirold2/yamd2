@@ -9,6 +9,7 @@ export default class Request implements RequestInterface {
     private bodyData;
     constructor(config: RequestConfig);
     setPath(path: string): RequestInterface;
+    setHost(host: string): RequestInterface;
     getHeaders(): RequestHeaders;
     setHeaders(headers: RequestHeaders): RequestInterface;
     addHeaders(headers: RequestHeaders): RequestInterface;
