@@ -257,7 +257,7 @@ export default class YMApi {
      * @param options Object containing optional parameters such as queue (previous track ID), batchId, etc.
      */
     postRotorSessionTracks(sessionId: string, options?: {
-        queue?: string;
+        queue?: string[];
         batchId?: string;
     }): Promise<RotorSessionCreateResponse>;
     /**
