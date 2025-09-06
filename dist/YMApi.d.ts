@@ -251,10 +251,15 @@ export default class YMApi {
      */
     createRotorSession(seeds: Array<string>, includeTracksInResponse?: boolean): Promise<RotorSessionCreateResponse>;
     /**
-     * POST: /rotor/{sessionId}/tracks
-     * @param seeds array of station ids e.g. user:onyourwave or ONF9-3TmPkPrNku4Kl5-uOAR
+     * POST: /rotor/session/{sessionId}/tracks
+     * Retrieves the next batch of tracks within an existing session
+     * @param sessionId The ID of the active session (radioSessionId)
+     * @param options Object containing optional parameters such as queue (previous track ID), batchId, etc.
      */
-    postRotorSessionTracks(sessionId: string): Promise<RotorSessionCreateResponse>;
+    postRotorSessionTracks(sessionId: string, options?: {
+        queue?: string;
+        batchId?: string;
+    }): Promise<RotorSessionCreateResponse>;
     /**
      * GET: /queues
      * @returns queues without tracks
