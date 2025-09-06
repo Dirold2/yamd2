@@ -618,6 +618,17 @@ class YMApi {
         return this.httpClient.post(request);
     }
     /**
+     * POST: /rotor/{sessionId}/tracks
+     * @param seeds array of station ids e.g. user:onyourwave or ONF9-3TmPkPrNku4Kl5-uOAR
+     */
+    postRotorSessionTracks(sessionId) {
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/rotor/session/${sessionId}/tracks`)
+            .addHeaders(this.getAuthHeader())
+            .addHeaders({ "content-type": "application/json" });
+        return this.httpClient.post(request);
+    }
+    /**
      * GET: /queues
      * @returns queues without tracks
      */

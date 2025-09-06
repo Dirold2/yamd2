@@ -251,6 +251,11 @@ export default class YMApi {
      */
     createRotorSession(seeds: Array<string>, includeTracksInResponse?: boolean): Promise<RotorSessionCreateResponse>;
     /**
+     * POST: /rotor/{sessionId}/tracks
+     * @param seeds array of station ids e.g. user:onyourwave or ONF9-3TmPkPrNku4Kl5-uOAR
+     */
+    postRotorSessionTracks(sessionId: string): Promise<RotorSessionCreateResponse>;
+    /**
      * GET: /queues
      * @returns queues without tracks
      */

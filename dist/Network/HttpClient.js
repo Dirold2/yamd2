@@ -14,10 +14,8 @@ class HttpClient {
             data: {}
         };
         if (["PUT", "POST", "DELETE", "PATCH"].includes(method.toUpperCase())) {
-            const contentType = (((_a = axiosRequest.headers) === null || _a === void 0 ? void 0 : _a["content-type"]) ||
-                ((_b = axiosRequest.headers) === null || _b === void 0 ? void 0 : _b["Content-Type"]));
-            if (contentType &&
-                contentType.toLowerCase().includes("application/json")) {
+            const contentType = (((_a = axiosRequest.headers) === null || _a === void 0 ? void 0 : _a["content-type"]) || ((_b = axiosRequest.headers) === null || _b === void 0 ? void 0 : _b["Content-Type"]));
+            if (contentType && contentType.toLowerCase().includes("application/json")) {
                 axiosRequest.data = request.getBodyData();
             }
             else {
