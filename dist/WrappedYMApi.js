@@ -50,6 +50,15 @@ class WrappedYMApi {
         }
     }
     async getConcreteDownloadInfo(track, codec, quality) {
+        const infos = await this.api.getTrackDownloadInfo(this.getTrackId(track));
+        return infos
+            .filter((i) => i.codec === codec)
+            .sort((a, b) => quality === "high"
+            ? a.bitrateInKbps - b.bitrateInKbps
+            : b.bitrateInKbps - a.bitrateInKbps)
+            .pop();
+    }
+    async getConcreteDownloadInfoNew(track, codec, quality) {
         var _a, _b, _c;
         const info = await this.api.getTrackDownloadInfoNew(track, quality);
         // новая структура: downloadInfo.url или downloadInfo.urls[0]
@@ -78,7 +87,7 @@ class WrappedYMApi {
         return this.getConcreteDownloadInfo(track, Types_1.DownloadTrackCodec.FLAC, quality);
     }
     async getMp3DownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.High) {
-        return this.api.getTrackDirectLinkNew((await this.getMp3DownloadInfo(track, quality)).downloadInfoUrl);
+        return this.api.getTrackDirectLink((await this.getMp3DownloadInfo(track, quality)).downloadInfoUrl);
     }
     async getAacDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.High) {
         return this.api.getTrackDirectLink((await this.getAacDownloadInfo(track, quality)).downloadInfoUrl, short);
