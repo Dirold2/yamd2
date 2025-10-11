@@ -1,6 +1,27 @@
-import type { HttpClientInterface, Method, Response, RequestInterface } from "../Types/request";
+import type { HttpClientInterface, Response, RequestInterface } from "../Types/request";
 export default class HttpClient implements HttpClientInterface {
-    _sendRequestAxios(method: Method, request: RequestInterface): Promise<Response>;
-    get(request: RequestInterface): Promise<Response>;
-    post(request: RequestInterface): Promise<Response>;
+    private cookieJar;
+    private agent;
+    private cache;
+    private cacheTTL;
+    private retryOptions;
+    constructor(options?: {
+        cacheTTL?: number;
+        cacheMaxSize?: number;
+        maxRetries?: number;
+    });
+    private decompressBody;
+    private getCacheKey;
+    private getCachedResponse;
+    private sleep;
+    private _sendRequestWithRetry;
+    private _sendRequestUndici;
+    get(requestObj: RequestInterface, useCache?: boolean): Promise<Response>;
+    post(requestObj: RequestInterface): Promise<Response>;
+    clearCache(): void;
+    getCacheStats(): {
+        size: number;
+        maxSize: number;
+    };
+    getCookies(url: string): Promise<string>;
 }

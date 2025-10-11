@@ -1,5 +1,6 @@
-import { ApiConfig, ApiInitConfig, InitResponse, GetGenresResponse, SearchResponse, Playlist, GetTrackResponse, Language, GetTrackSupplementResponse, GetTrackDownloadInfoResponse, GetFeedResponse, GetAccountStatusResponse, Track, TrackId, SearchOptions, ConcreteSearchOptions, SearchAllResponse, SearchArtistsResponse, SearchTracksResponse, SearchAlbumsResponse, AlbumId, Album, AlbumWithTracks, FilledArtist, Artist, ArtistId, ArtistTracksResponse, DisOrLikedTracksResponse, ChartType, ChartTracksResponse, NewReleasesResponse, NewPlaylistsResponse, PodcastsResponse, SimilarTracksResponse, StationTracksResponse, StationInfoResponse, AllStationsListResponse, RecomendedStationsListResponse, QueuesResponse, QueueResponse, RotorSessionCreateResponse } from "./Types";
+import { ApiConfig, ApiInitConfig, InitResponse, GetGenresResponse, SearchResponse, Playlist, GetTrackResponse, Language, GetTrackSupplementResponse, GetTrackDownloadInfoResponse, GetFeedResponse, GetAccountStatusResponse, Track, TrackId, SearchOptions, ConcreteSearchOptions, SearchAllResponse, SearchArtistsResponse, SearchTracksResponse, SearchAlbumsResponse, AlbumId, Album, AlbumWithTracks, FilledArtist, Artist, ArtistId, ArtistTracksResponse, DisOrLikedTracksResponse, ChartType, ChartTracksResponse, NewReleasesResponse, NewPlaylistsResponse, PodcastsResponse, SimilarTracksResponse, StationTracksResponse, StationInfoResponse, AllStationsListResponse, RecomendedStationsListResponse, QueuesResponse, QueueResponse, RotorSessionCreateResponse, FileInfoResponseNew } from "./Types";
 import { HttpClientInterface } from "./Types/request";
+import { Types } from '.';
 export default class YMApi {
     private httpClient;
     private config;
@@ -166,11 +167,14 @@ export default class YMApi {
      * GET: /tracks/[track_id]/download-info
      * @returns track download information
      */
-    getTrackDownloadInfo(trackId: TrackId): Promise<GetTrackDownloadInfoResponse>;
+    getTrackDownloadInfo(trackId: TrackId, canUseStreaming?: Boolean): Promise<GetTrackDownloadInfoResponse>;
+    getTrackDownloadInfoNew(trackId: string, quality?: Types.DownloadTrackQuality): Promise<FileInfoResponseNew>;
     /**
      * @returns track direct link
      */
     getTrackDirectLink(trackDownloadUrl: string, short?: Boolean): Promise<string>;
+    getTrackDirectLinkNew(trackUrl: string): Promise<string>;
+    extractTrackId(url: string): string;
     /**
      * @returns track sharing link
      */

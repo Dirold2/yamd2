@@ -399,8 +399,9 @@ export type GetTrackSupplementResponse = {
     lyrics: Lyrics;
     videos: Array<Video>;
 };
-type AudioCodec = "mp3" | "aac" | string;
+type AudioCodec = "mp3" | "aac" | "flac" | string;
 export type DownloadInfo = {
+    quality: DownloadTrackQuality;
     codec: AudioCodec;
     gain: boolean;
     preview: boolean;
@@ -439,12 +440,15 @@ export type ApiUser = {
     uid: number;
 };
 export declare enum DownloadTrackQuality {
+    Lossless = "lossless",
     High = "high",
     Low = "low"
 }
 export declare enum DownloadTrackCodec {
-    MP3 = "mp3",
-    AAC = "aac"
+    FLAC = "flac",
+    AAC = "aac",
+    HEACC = "he-aac",
+    MP3 = "mp3"
 }
 export type SearchOptions = {
     type?: SearchType;
@@ -684,5 +688,29 @@ export type RotorSessionCreateResponse = {
     descriptionSeed?: RotorSeed;
     acceptedSeeds?: Array<RotorSeed>;
     terminated?: boolean;
+};
+export type FileInfoResponse = {
+    file: {
+        downloadUrl: string;
+        size?: number;
+        type?: string;
+        [key: string]: any;
+    };
+    [key: string]: any;
+};
+export type FileInfoResponseNew = {
+    downloadInfo: {
+        trackId: string;
+        quality: string;
+        codec: string;
+        bitrate: number;
+        transport: string;
+        size: number;
+        gain: boolean;
+        url: string;
+        urls: string[];
+        realId: string;
+        [key: string]: any;
+    };
 };
 export {};

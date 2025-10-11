@@ -24,5 +24,8 @@ exports.default = {
         DEVICE_ID: "377c5ae26b09fccd72deae0a95425559",
         UUID: "3cfccdaf75dcf98b917a54afe50447ba",
         PACKAGE_NAME: "ru.yandex.music"
+    },
+    client: {
+        USER_AGENT: "YandexMusicDesktopAppWindows/5.23.2"
     }
 };

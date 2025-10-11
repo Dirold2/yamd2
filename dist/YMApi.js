@@ -39,9 +39,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./PreparedRequest/index");
 const config_1 = __importDefault(require("./PreparedRequest/config"));
 const HttpClient_1 = __importDefault(require("./Network/HttpClient"));
-const fast_xml_parser_1 = require("fast-xml-parser");
 const crypto = __importStar(require("crypto"));
+const Types_1 = require("./Types");
 const ClckApi_1 = __importDefault(require("./ClckApi"));
+const _1 = require(".");
 class YMApi {
     constructor(httpClient = new HttpClient_1.default(), config = config_1.default) {
         this.httpClient = httpClient;
@@ -411,33 +412,73 @@ class YMApi {
      * GET: /tracks/[track_id]/download-info
      * @returns track download information
      */
-    getTrackDownloadInfo(trackId) {
+    getTrackDownloadInfo(trackId, canUseStreaming = true) {
+        const ts = Math.floor(Date.now() / 1000);
         const request = (0, index_1.apiRequest)()
             .setPath(`/tracks/${trackId}/download-info`)
-            .addHeaders(this.getAuthHeader());
+            .addHeaders(this.getAuthHeader())
+            .addQuery({
+            ts: String(ts),
+            can_use_streaming: String(canUseStreaming)
+        });
         return this.httpClient.get(request);
+    }
+    async getTrackDownloadInfoNew(trackId, quality = _1.Types.DownloadTrackQuality.Lossless) {
+        if (!this.user.token)
+            throw new Error("User token is missing");
+        const ts = Math.floor(Date.now() / 1000);
+        const codecs = "flac,aac,he-aac,mp3";
+        const transports = "raw";
+        const secret = "kzqU4XhfCaY6B6JTHODeq5";
+        // строим HMAC
+        const hmacString = `${ts}${trackId}losslessflacaache-aacmp3raw`;
+        const hmacSign = crypto.createHmac('sha256', secret)
+            .update(hmacString)
+            .digest();
+        const sign = Buffer.from(hmacSign).toString('base64').slice(0, -1);
+        // формируем запрос
+        const request = (0, index_1.apiRequest)()
+            .setPath(`/get-file-info`)
+            .addHeaders(this.getAuthHeader())
+            .addQuery({
+            ts: String(ts),
+            trackId,
+            quality: Types_1.DownloadTrackQuality.Lossless,
+            codecs,
+            transports,
+            sign
+        });
+        return await this.httpClient.get(request);
     }
     /**
      * @returns track direct link
      */
     async getTrackDirectLink(trackDownloadUrl, short = false) {
         const request = (0, index_1.directLinkRequest)(trackDownloadUrl);
-        const xml = await this.httpClient.get(request);
-        const parser = new fast_xml_parser_1.XMLParser({ ignoreAttributes: false });
-        const parsedXml = parser.parse(xml);
-        const host = parsedXml["download-info"].host;
-        const path = parsedXml["download-info"].path;
-        const ts = parsedXml["download-info"].ts;
-        const s = parsedXml["download-info"].s;
+        const parsedXml = await this.httpClient.get(request);
+        const downloadInfo = parsedXml["download-info"];
+        if (!downloadInfo)
+            throw new Error("Download info missing in response");
+        const host = downloadInfo.host;
+        const path = downloadInfo.path;
+        const ts = downloadInfo.ts;
+        const s = downloadInfo.s;
         const sign = crypto
             .createHash("md5")
             .update("XGRlBW9FXlekgbPrRHuSiA" + path.slice(1) + s)
             .digest("hex");
         const link = `https://${host}/get-mp3/${sign}/${ts}${path}`;
-        if (short)
-            return await (0, ClckApi_1.default)(link);
-        else
-            return link;
+        return short ? await (0, ClckApi_1.default)(link) : link;
+    }
+    async getTrackDirectLinkNew(trackUrl) {
+        return `${trackUrl}`;
+    }
+    extractTrackId(url) {
+        // пример: https://music.yandex.ru/album/14457044/track/25063569
+        const match = url.match(/\/track\/(\d+)/);
+        if (!match)
+            throw new Error("Invalid Yandex Music track URL");
+        return match[1];
     }
     /**
      * @returns track sharing link

@@ -23,5 +23,8 @@ declare const _default: {
         UUID: string;
         PACKAGE_NAME: string;
     };
+    client: {
+        USER_AGENT: string;
+    };
 };
 export default _default;
