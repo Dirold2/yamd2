@@ -1,10 +1,11 @@
-import { ApiConfig, ApiInitConfig, InitResponse, GetGenresResponse, SearchResponse, Playlist, GetTrackResponse, Language, GetTrackSupplementResponse, GetTrackDownloadInfoResponse, GetFeedResponse, GetAccountStatusResponse, Track, TrackId, SearchOptions, ConcreteSearchOptions, SearchAllResponse, SearchArtistsResponse, SearchTracksResponse, SearchAlbumsResponse, AlbumId, Album, AlbumWithTracks, FilledArtist, Artist, ArtistId, ArtistTracksResponse, DisOrLikedTracksResponse, ChartType, ChartTracksResponse, NewReleasesResponse, NewPlaylistsResponse, PodcastsResponse, SimilarTracksResponse, StationTracksResponse, StationInfoResponse, AllStationsListResponse, RecomendedStationsListResponse, QueuesResponse, QueueResponse, RotorSessionCreateResponse, FileInfoResponseNew } from "./Types";
-import { HttpClientInterface } from "./Types/request";
-import { Types } from '.';
+import { type ApiConfig, type ApiInitConfig, type InitResponse, type GetGenresResponse, type SearchResponse, type Playlist, type GetTrackResponse, type Language, type GetTrackSupplementResponse, type GetTrackDownloadInfoResponse, type GetFeedResponse, type GetAccountStatusResponse, type Track, type TrackId, type SearchOptions, type ConcreteSearchOptions, type SearchAllResponse, type SearchArtistsResponse, type SearchTracksResponse, type SearchAlbumsResponse, type AlbumId, type Album, type AlbumWithTracks, type FilledArtist, type Artist, type ArtistId, type ArtistTracksResponse, type DisOrLikedTracksResponse, type ChartType, type ChartTracksResponse, type NewReleasesResponse, type NewPlaylistsResponse, type PodcastsResponse, type SimilarTracksResponse, type StationTracksResponse, type StationInfoResponse, type AllStationsListResponse, type RecomendedStationsListResponse, type QueuesResponse, type QueueResponse, type RotorSessionCreateResponse, DownloadTrackQuality, type FileInfoResponseNew } from "./Types";
+import type { HttpClientInterface } from "./Types/request";
 export default class YMApi {
     private httpClient;
     private config;
     private user;
+    private serverOffsetCache;
+    private readonly SERVER_OFFSET_CACHE_TTL;
     constructor(httpClient?: HttpClientInterface, config?: ApiConfig);
     private getAuthHeader;
     private getFakeDeviceHeader;
@@ -167,12 +168,12 @@ export default class YMApi {
      * GET: /tracks/[track_id]/download-info
      * @returns track download information
      */
-    getTrackDownloadInfo(trackId: TrackId, canUseStreaming?: Boolean): Promise<GetTrackDownloadInfoResponse>;
-    getTrackDownloadInfoNew(trackId: string, quality?: Types.DownloadTrackQuality): Promise<FileInfoResponseNew>;
+    getTrackDownloadInfo(trackId: TrackId, quality?: DownloadTrackQuality, canUseStreaming?: boolean): Promise<GetTrackDownloadInfoResponse>;
+    getTrackDownloadInfoNew(trackId: number, quality?: DownloadTrackQuality): Promise<FileInfoResponseNew>;
     /**
      * @returns track direct link
      */
-    getTrackDirectLink(trackDownloadUrl: string, short?: Boolean): Promise<string>;
+    getTrackDirectLink(trackDownloadUrl: string, short?: boolean): Promise<string>;
     getTrackDirectLinkNew(trackUrl: string): Promise<string>;
     extractTrackId(url: string): string;
     /**
@@ -275,4 +276,15 @@ export default class YMApi {
      * @returns queue data with(?) tracks.
      */
     getQueue(queueId: string): Promise<QueueResponse>;
+    /**
+     * Get Yandex server time offset with caching
+     * @param retries Number of retry attempts
+     * @param timeoutMs Timeout in milliseconds
+     * @returns Server time offset in seconds
+     */
+    private getYandexServerOffset;
+    /**
+     * Generate signature for track download
+     */
+    private generateTrackSignature;
 }

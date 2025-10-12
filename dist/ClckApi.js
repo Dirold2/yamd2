@@ -1,12 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = shortenLink;
-const HttpClient_1 = __importDefault(require("./Network/HttpClient"));
+const Network_1 = require("./Network");
 const PreparedRequest_1 = require("./PreparedRequest");
-const httpClient = new HttpClient_1.default();
+const httpClient = new Network_1.HttpClientImproved();
 /**
  * GET: clck.ru/--
  * @param URL Url to something

@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Types_1 = require("./Types");
 const YMApi_1 = __importDefault(require("./YMApi"));
-const UrlExtractor_1 = __importDefault(require("./Network/UrlExtractor"));
+const Network_1 = require("./Network");
 class WrappedYMApi {
-    constructor(api = new YMApi_1.default(), urlExtractor = new UrlExtractor_1.default()) {
+    constructor(api = new YMApi_1.default(), urlExtractor = new Network_1.UrlExtractor()) {
         this.api = api;
         this.urlExtractor = urlExtractor;
     }
@@ -58,44 +58,49 @@ class WrappedYMApi {
             : b.bitrateInKbps - a.bitrateInKbps)
             .pop();
     }
-    async getConcreteDownloadInfoNew(track, codec, quality) {
-        var _a, _b, _c;
-        const info = await this.api.getTrackDownloadInfoNew(track, quality);
-        // новая структура: downloadInfo.url или downloadInfo.urls[0]
-        const downloadUrl = ((_a = info.downloadInfo) === null || _a === void 0 ? void 0 : _a.url) || ((_c = (_b = info.downloadInfo) === null || _b === void 0 ? void 0 : _b.urls) === null || _c === void 0 ? void 0 : _c[0]);
+    async getConcreteDownloadInfoNew(track, codec, quality = Types_1.DownloadTrackQuality.Lossless) {
+        var _a, _b, _c, _d, _e, _f;
+        const info = await this.api.getTrackDownloadInfoNew(this.getTrackId(track), quality);
+        const downloadUrl = ((_a = info === null || info === void 0 ? void 0 : info.downloadInfo) === null || _a === void 0 ? void 0 : _a.url) || ((_c = (_b = info === null || info === void 0 ? void 0 : info.downloadInfo) === null || _b === void 0 ? void 0 : _b.urls) === null || _c === void 0 ? void 0 : _c[0]);
         if (!downloadUrl) {
-            throw new Error("Download info not found");
+            throw new Error(`Download URL not found in response for track ${track}`);
         }
         const downloadInfo = {
             codec,
-            bitrateInKbps: info.downloadInfo.bitrate || 0,
+            bitrateInKbps: ((_d = info.downloadInfo) === null || _d === void 0 ? void 0 : _d.bitrate) || 0,
             downloadInfoUrl: downloadUrl,
             direct: true,
-            quality: info.downloadInfo.quality,
-            gain: info.downloadInfo.gain || false,
+            quality: (((_e = info.downloadInfo) === null || _e === void 0 ? void 0 : _e.quality) || quality),
+            gain: ((_f = info.downloadInfo) === null || _f === void 0 ? void 0 : _f.gain) || false,
             preview: false
         };
         return downloadInfo;
     }
     getMp3DownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
+        return this.getConcreteDownloadInfoNew(track, Types_1.DownloadTrackCodec.MP3, quality);
+    }
+    getMp3DownloadInfoOld(track, quality = Types_1.DownloadTrackQuality.Lossless) {
         return this.getConcreteDownloadInfo(track, Types_1.DownloadTrackCodec.MP3, quality);
     }
     getAacDownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.getConcreteDownloadInfo(track, Types_1.DownloadTrackCodec.AAC, quality);
+        return this.getConcreteDownloadInfoNew(track, Types_1.DownloadTrackCodec.AAC, quality);
     }
     getFlacDownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.getConcreteDownloadInfo(track, Types_1.DownloadTrackCodec.FLAC, quality);
+        return this.getConcreteDownloadInfoNew(track, Types_1.DownloadTrackCodec.FLAC, quality);
     }
-    async getMp3DownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.High) {
-        return this.api.getTrackDirectLink((await this.getMp3DownloadInfo(track, quality)).downloadInfoUrl);
+    async getMp3DownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
+        return this.api.getTrackDirectLink((await this.getMp3DownloadInfoOld(track, quality)).downloadInfoUrl);
     }
-    async getAacDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.High) {
-        return this.api.getTrackDirectLink((await this.getAacDownloadInfo(track, quality)).downloadInfoUrl, short);
+    async getMp3DownloadUrlNew(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
+        return this.api.getTrackDirectLinkNew((await this.getMp3DownloadInfo(track, quality)).downloadInfoUrl);
     }
-    async getFlacDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.High) {
-        return this.api.getTrackDirectLink((await this.getFlacDownloadInfo(track, quality)).downloadInfoUrl, short);
+    async getAacDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
+        return this.api.getTrackDirectLinkNew((await this.getAacDownloadInfo(track, quality)).downloadInfoUrl);
     }
-    async getBestDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.High) {
+    async getFlacDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
+        return this.api.getTrackDirectLinkNew((await this.getFlacDownloadInfo(track, quality)).downloadInfoUrl);
+    }
+    async getBestDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
         const codecsPriority = [
             Types_1.DownloadTrackCodec.FLAC,
             Types_1.DownloadTrackCodec.AAC,
@@ -116,7 +121,6 @@ class WrappedYMApi {
                         break;
                 }
                 if (info === null || info === void 0 ? void 0 : info.downloadInfoUrl) {
-                    // Передаём codec из приоритета, а не info.codec
                     return await this.api.getTrackDirectLink(info.downloadInfoUrl, short);
                 }
             }

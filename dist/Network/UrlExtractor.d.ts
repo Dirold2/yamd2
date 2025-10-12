@@ -1,6 +1,6 @@
 import { UrlExtractorInterface } from "../Types";
 export default class UrlExtractor implements UrlExtractorInterface {
-    private extract;
+    private extractGroups;
     extractTrackId(url: string): number;
     extractAlbumId(url: string): number;
     extractArtistId(url: string): number;

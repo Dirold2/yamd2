@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PreparedRequest = void 0;
 const querystring = __importStar(require("querystring"));
 class Request {
     constructor(config) {
@@ -133,3 +134,74 @@ class Request {
     }
 }
 exports.default = Request;
+class PreparedRequest {
+    constructor(baseUrl) {
+        // Parse the URL to extract scheme, host, port
+        const url = new URL(baseUrl);
+        const config = {
+            scheme: url.protocol.replace(":", ""),
+            host: url.hostname,
+            port: url.port
+                ? Number.parseInt(url.port)
+                : url.protocol === "https:"
+                    ? 443
+                    : 80,
+            path: ""
+        };
+        this.request = new Request(config);
+    }
+    setPath(path) {
+        this.request.setPath(path);
+        return this;
+    }
+    setHost(host) {
+        this.request.setHost(host);
+        return this;
+    }
+    getHeaders() {
+        return this.request.getHeaders();
+    }
+    setHeaders(headers) {
+        this.request.setHeaders(headers);
+        return this;
+    }
+    addHeaders(headers) {
+        this.request.addHeaders(headers);
+        return this;
+    }
+    getQuery() {
+        return this.request.getQuery();
+    }
+    setQuery(query) {
+        this.request.setQuery(query);
+        return this;
+    }
+    addQuery(query) {
+        this.request.addQuery(query);
+        return this;
+    }
+    getQueryAsString() {
+        return this.request.getQueryAsString();
+    }
+    getBodyData() {
+        return this.request.getBodyData();
+    }
+    getBodyDataString() {
+        return this.request.getBodyDataString();
+    }
+    setBodyData(bodyData) {
+        this.request.setBodyData(bodyData);
+        return this;
+    }
+    addBodyData(bodyData) {
+        this.request.addBodyData(bodyData);
+        return this;
+    }
+    getURI() {
+        return this.request.getURI();
+    }
+    getURL() {
+        return this.request.getURL();
+    }
+}
+exports.PreparedRequest = PreparedRequest;
