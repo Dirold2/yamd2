@@ -310,10 +310,7 @@ class YMApi {
             title: name,
             visibility
         });
-        const playlist = await this.httpClient.post(request);
-        console.log(request);
-        console.log(playlist);
-        return playlist;
+        return await this.httpClient.post(request);
     }
     /**
      * POST: /users/[user_id]/playlists/[playlist_kind]/delete
@@ -407,7 +404,7 @@ class YMApi {
         if (!tracks || tracks.length === 0) {
             throw new Error(`No track found for ID ${trackId}`);
         }
-        return tracks[0]; // берём первый трек, даже если массив больше одного
+        return tracks[0];
     }
     /**
      * GET: /tracks/[track_id]/supplement
@@ -476,7 +473,6 @@ class YMApi {
         return short ? await (0, ClckApi_1.default)(link) : link;
     }
     async getTrackDirectLinkNew(trackUrl) {
-        console.log(trackUrl);
         return `${trackUrl}`;
     }
     extractTrackId(url) {
