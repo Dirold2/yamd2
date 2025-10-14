@@ -3,14 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UrlExtractor = exports.PreparedRequest = exports.Request = exports.HttpClient = exports.RateLimiter = exports.CacheManager = exports.QueueManager = exports.HttpClientImproved = void 0;
+exports.UrlExtractor = exports.PreparedRequest = exports.Request = exports.RateLimiter = exports.CacheManager = exports.QueueManager = exports.HttpClientImproved = void 0;
 var HttpClientImproved_1 = require("./HttpClientImproved");
 Object.defineProperty(exports, "HttpClientImproved", { enumerable: true, get: function () { return HttpClientImproved_1.HttpClientImproved; } });
 Object.defineProperty(exports, "QueueManager", { enumerable: true, get: function () { return HttpClientImproved_1.QueueManager; } });
 Object.defineProperty(exports, "CacheManager", { enumerable: true, get: function () { return HttpClientImproved_1.CacheManager; } });
 Object.defineProperty(exports, "RateLimiter", { enumerable: true, get: function () { return HttpClientImproved_1.RateLimiter; } });
-var HttpClientBack_1 = require("./HttpClientBack");
-Object.defineProperty(exports, "HttpClient", { enumerable: true, get: function () { return __importDefault(HttpClientBack_1).default; } });
 var Request_1 = require("./Request");
 Object.defineProperty(exports, "Request", { enumerable: true, get: function () { return __importDefault(Request_1).default; } });
 var Request_2 = require("./Request");

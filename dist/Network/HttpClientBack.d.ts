@@ -1,7 +1,0 @@
-import { HttpClientInterface, Method, Response, RequestInterface } from "../Types/request";
-export default class HttpClient implements HttpClientInterface {
-    _sendRequestAxios(method: Method, request: RequestInterface): Promise<Response>;
-    private serializeBody;
-    get(request: RequestInterface): Promise<Response>;
-    post(request: RequestInterface): Promise<Response>;
-}
