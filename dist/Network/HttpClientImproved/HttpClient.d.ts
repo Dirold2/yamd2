@@ -1,5 +1,5 @@
 import type { HttpClientInterface, RequestInterface } from "../../Types/request";
-export default class HttpClientImproved implements HttpClientInterface {
+export declare class HttpClientImproved implements HttpClientInterface {
     private cookieJar;
     private agent;
     private cache;
