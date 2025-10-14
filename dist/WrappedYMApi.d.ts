@@ -12,8 +12,8 @@ export default class WrappedYMApi {
     private getPlaylistId;
     getConcreteDownloadInfo(track: TrackId | TrackUrl, codec: DownloadTrackCodec, quality: DownloadTrackQuality): Promise<DownloadInfo>;
     getConcreteDownloadInfoNew(track: TrackId | TrackUrl, codec: DownloadTrackCodec, quality?: DownloadTrackQuality): Promise<DownloadInfo>;
-    getMp3DownloadInfoNew(track: TrackId | TrackUrl, quality?: DownloadTrackQuality): Promise<DownloadInfo>;
     getMp3DownloadInfo(track: TrackId | TrackUrl, quality?: DownloadTrackQuality): Promise<DownloadInfo>;
+    getMp3DownloadInfoOld(track: TrackId | TrackUrl, quality?: DownloadTrackQuality): Promise<DownloadInfo>;
     getAacDownloadInfo(track: TrackId | TrackUrl, quality?: DownloadTrackQuality): Promise<DownloadInfo>;
     getFlacDownloadInfo(track: TrackId | TrackUrl, quality?: DownloadTrackQuality): Promise<DownloadInfo>;
     getMp3DownloadUrl(track: TrackId | TrackUrl, short?: boolean, quality?: DownloadTrackQuality): Promise<string>;

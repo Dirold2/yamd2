@@ -76,10 +76,10 @@ class WrappedYMApi {
         };
         return downloadInfo;
     }
-    getMp3DownloadInfoNew(track, quality = Types_1.DownloadTrackQuality.Lossless) {
+    getMp3DownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
         return this.getConcreteDownloadInfoNew(track, Types_1.DownloadTrackCodec.MP3, quality);
     }
-    getMp3DownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
+    getMp3DownloadInfoOld(track, quality = Types_1.DownloadTrackQuality.Lossless) {
         return this.getConcreteDownloadInfo(track, Types_1.DownloadTrackCodec.MP3, quality);
     }
     getAacDownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
@@ -89,7 +89,7 @@ class WrappedYMApi {
         return this.getConcreteDownloadInfoNew(track, Types_1.DownloadTrackCodec.FLAC, quality);
     }
     async getMp3DownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.api.getTrackDirectLink((await this.getMp3DownloadInfo(track, quality)).downloadInfoUrl);
+        return this.api.getTrackDirectLink((await this.getMp3DownloadInfoOld(track, quality)).downloadInfoUrl);
     }
     async getMp3DownloadUrlNew(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
         return this.api.getTrackDirectLinkNew((await this.getMp3DownloadInfo(track, quality)).downloadInfoUrl);
