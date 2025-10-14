@@ -33,7 +33,6 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HttpClientImproved = void 0;
 const tough_cookie_1 = require("tough-cookie");
 const undici_1 = require("http-cookie-agent/undici");
 const undici_2 = require("undici");
@@ -81,10 +80,14 @@ class HttpClientImproved {
         if (!enc)
             return buf.toString("utf-8");
         switch (enc.toLowerCase()) {
-            case "gzip": return (await gunzip(buf)).toString("utf-8");
-            case "deflate": return (await inflate(buf)).toString("utf-8");
-            case "br": return (await brotliDecompress(buf)).toString("utf-8");
-            default: return buf.toString("utf-8");
+            case "gzip":
+                return (await gunzip(buf)).toString("utf-8");
+            case "deflate":
+                return (await inflate(buf)).toString("utf-8");
+            case "br":
+                return (await brotliDecompress(buf)).toString("utf-8");
+            default:
+                return buf.toString("utf-8");
         }
     }
     async sendWithRetry(method, url, headers, body) {
@@ -92,7 +95,12 @@ class HttpClientImproved {
         for (let i = 0; i <= this.retryOptions.maxRetries; i++) {
             try {
                 await this.limiter.wait();
-                const res = await (0, undici_2.request)(url, { method, headers, body, dispatcher: this.agent });
+                const res = await (0, undici_2.request)(url, {
+                    method,
+                    headers,
+                    body,
+                    dispatcher: this.agent
+                });
                 const buf = Buffer.from(await res.body.arrayBuffer());
                 if (this.retryOptions.retryStatusCodes.includes(res.statusCode)) {
                     await this.sleep(this.calcDelay(i));
@@ -110,10 +118,12 @@ class HttpClientImproved {
     }
     calcDelay(attempt) {
         const base = Math.min(this.retryOptions.baseDelay * 2 ** attempt, this.retryOptions.maxDelay);
-        return this.retryOptions.jitter ? base * (0.75 + Math.random() * 0.5) : base;
+        return this.retryOptions.jitter
+            ? base * (0.75 + Math.random() * 0.5)
+            : base;
     }
     sleep(ms) {
-        return new Promise(r => setTimeout(r, ms));
+        return new Promise((r) => setTimeout(r, ms));
     }
     async parseResponse(res) {
         var _a;
@@ -151,20 +161,32 @@ class HttpClientImproved {
         }
         if (this.inflight.has(key))
             return this.inflight.get(key);
-        const promise = this.queue.enqueue(async () => {
+        const promise = this.queue
+            .enqueue(async () => {
             const raw = await this.sendWithRetry(method, url, headers, body);
             const parsed = await this.parseResponse(raw);
             if (method === "GET" && useCache)
                 this.cache.set(key, parsed);
             return parsed;
-        }).finally(() => this.inflight.delete(key));
+        })
+            .finally(() => this.inflight.delete(key));
         this.inflight.set(key, promise);
         return promise;
     }
-    get(req) { return this.request("GET", req); }
-    post(req) { return this.request("POST", req, false); }
-    put(req) { return this.request("PUT", req, false); }
-    delete(req) { return this.request("DELETE", req, false); }
-    clearCache() { this.cache.clear(); }
+    get(req) {
+        return this.request("GET", req);
+    }
+    post(req) {
+        return this.request("POST", req, false);
+    }
+    put(req) {
+        return this.request("PUT", req, false);
+    }
+    delete(req) {
+        return this.request("DELETE", req, false);
+    }
+    clearCache() {
+        this.cache.clear();
+    }
 }
-exports.HttpClientImproved = HttpClientImproved;
+exports.default = HttpClientImproved;
