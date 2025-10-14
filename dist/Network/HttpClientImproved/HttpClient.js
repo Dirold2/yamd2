@@ -33,7 +33,6 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HttpClientImproved = void 0;
 const tough_cookie_1 = require("tough-cookie");
 const undici_1 = require("http-cookie-agent/undici");
 const undici_2 = require("undici");
@@ -167,4 +166,4 @@ class HttpClientImproved {
     delete(req) { return this.request("DELETE", req, false); }
     clearCache() { this.cache.clear(); }
 }
-exports.HttpClientImproved = HttpClientImproved;
+exports.default = HttpClientImproved;

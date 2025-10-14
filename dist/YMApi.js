@@ -44,7 +44,7 @@ const timeout_1 = require("./utils/timeout");
 const Types_1 = require("./Types");
 const ClckApi_1 = __importDefault(require("./ClckApi"));
 class YMApi {
-    constructor(httpClient = new Network_1.HttpClientImproved(), config = config_1.default) {
+    constructor(httpClient = new Network_1.HttpClient(), config = config_1.default) {
         this.httpClient = httpClient;
         this.config = config;
         this.user = {
