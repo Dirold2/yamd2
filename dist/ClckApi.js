@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = shortenLink;
 const Network_1 = require("./Network");
 const PreparedRequest_1 = require("./PreparedRequest");
-const defaultClient = new Network_1.HttpClient();
+const defaultClient = new Network_1.HttpClientImproved();
 /**
  * GET: clck.ru/--
  * @param URL Url to shorten

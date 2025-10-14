@@ -45,7 +45,7 @@ const Types_1 = require("./Types");
 const ClckApi_1 = __importDefault(require("./ClckApi"));
 const fast_xml_parser_1 = require("fast-xml-parser");
 class YMApi {
-    constructor(httpClient = new Network_1.HttpClient(), config = config_1.default) {
+    constructor(httpClient = new Network_1.HttpClientImproved(), config = config_1.default) {
         this.httpClient = httpClient;
         this.config = config;
         this.user = {
