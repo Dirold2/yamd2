@@ -9,7 +9,7 @@ class QueueManager {
     }
     async enqueue(executor) {
         if (this.running >= this.maxConcurrent) {
-            await new Promise(resolve => this.queue.push(resolve));
+            await new Promise((resolve) => this.queue.push(resolve));
         }
         this.running++;
         try {

@@ -1,4 +1,4 @@
-import { HttpClientInterface } from './Types/request';
+import { HttpClientInterface } from "./Types/request";
 /**
  * GET: clck.ru/--
  * @param URL Url to shorten

@@ -43,6 +43,7 @@ const crypto = __importStar(require("crypto"));
 const timeout_1 = require("./utils/timeout");
 const Types_1 = require("./Types");
 const ClckApi_1 = __importDefault(require("./ClckApi"));
+const fast_xml_parser_1 = require("fast-xml-parser");
 class YMApi {
     constructor(httpClient = new Network_1.HttpClient(), config = config_1.default) {
         this.httpClient = httpClient;
@@ -189,7 +190,7 @@ class YMApi {
         if (options.pageSize !== void 0) {
             request.addQuery({ pageSize: String(options.pageSize) });
         }
-        return await this.httpClient.get(request);
+        return (await this.httpClient.get(request));
     }
     /**
      * @param query Query
@@ -310,7 +311,7 @@ class YMApi {
             title: name,
             visibility
         });
-        return await this.httpClient.post(request);
+        return (await this.httpClient.post(request));
     }
     /**
      * POST: /users/[user_id]/playlists/[playlist_kind]/delete
@@ -393,7 +394,7 @@ class YMApi {
             .setPath(`/tracks/${trackId}`)
             .addHeaders(this.getAuthHeader())
             .addHeaders({ "content-type": "application/json" });
-        return await this.httpClient.get(request);
+        return (await this.httpClient.get(request));
     }
     /**
      * GET: /tracks/[track_id]
@@ -431,7 +432,7 @@ class YMApi {
             can_use_streaming: String(canUseStreaming),
             sign
         });
-        return await this.httpClient.get(request);
+        return (await this.httpClient.get(request));
     }
     async getTrackDownloadInfoNew(trackId, quality = Types_1.DownloadTrackQuality.Lossless) {
         if (!this.user.token)
@@ -450,15 +451,22 @@ class YMApi {
             transports: "raw",
             sign
         });
-        return await this.httpClient.get(request);
+        return (await this.httpClient.get(request));
     }
     /**
      * @returns track direct link
      */
     async getTrackDirectLink(trackDownloadUrl, short = false) {
         const request = (0, PreparedRequest_1.directLinkRequest)(trackDownloadUrl);
-        const parsedXml = (await this.httpClient.get(request));
-        const downloadInfo = parsedXml["download-info"];
+        const rawResponse = (await this.httpClient.get(request));
+        let parsed;
+        if (typeof rawResponse === "string" && rawResponse.trim().startsWith("<")) {
+            parsed = new fast_xml_parser_1.XMLParser({ ignoreAttributes: false }).parse(rawResponse);
+        }
+        else {
+            parsed = rawResponse;
+        }
+        const downloadInfo = parsed["download-info"];
         if (!downloadInfo)
             throw new Error("Download info missing in response");
         const host = downloadInfo.host;

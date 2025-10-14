@@ -37,96 +37,36 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
-const fast_xml_parser_1 = require("fast-xml-parser");
-const util_1 = require("util");
-const zlib = __importStar(require("zlib"));
-const gunzip = (0, util_1.promisify)(zlib.gunzip);
-const inflate = (0, util_1.promisify)(zlib.inflate);
-const brotliDecompress = (0, util_1.promisify)(zlib.brotliDecompress);
+const querystring = __importStar(require("querystring"));
 class HttpClient {
-    constructor(options) {
-        this.defaultTimeout = 10000; // 10 сек
-        this.retryCount = 2;
-        if (options === null || options === void 0 ? void 0 : options.timeout)
-            this.defaultTimeout = options.timeout;
-        if (options === null || options === void 0 ? void 0 : options.retryCount)
-            this.retryCount = options.retryCount;
-    }
-    async _sendRequestAxios(method, request, attempt = 0) {
-        var _a, _b, _c, _d;
+    async _sendRequestAxios(method, request) {
+        var _a;
+        const isBodyAllowed = ["PUT", "POST", "DELETE", "PATCH"].includes(method.toUpperCase());
+        const body = isBodyAllowed ? this.serializeBody(request) : undefined;
+        const headers = { ...request.getHeaders() };
+        if (isBodyAllowed && !headers["content-type"]) {
+            headers["content-type"] = "application/json";
+            if (body && typeof body === "string") {
+                headers["content-type"] = "application/x-www-form-urlencoded";
+            }
+        }
         const axiosRequest = {
             method,
             url: request.getURL(),
-            headers: {
-                ...request.getHeaders(),
-                "Content-Type": "application/json, text/plain, */*",
-                "Accept-Encoding": "gzip, deflate, br",
-                "User-Agent": "YandexMusicDesktopAppWindows/5.13.2",
-                "X-Yandex-Music-Client": "YandexMusicDesktopAppWindows/5.13.2"
-            },
-            timeout: this.defaultTimeout,
-            responseType: "arraybuffer", // для поддержки сжатых ответов
-            data: ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())
-                ? this.serializeBody(request)
-                : undefined,
-            decompress: true, // авто-распаковка gzip/deflate
+            headers,
+            data: body
         };
-        try {
-            const response = await (0, axios_1.default)(axiosRequest);
-            const data = this.parseResponse(response);
-            return data;
-        }
-        catch (err) {
-            const error = err;
-            if (attempt < this.retryCount &&
-                (error.code === "ECONNABORTED" || ((_b = (_a = error.response) === null || _a === void 0 ? void 0 : _a.status) !== null && _b !== void 0 ? _b : 0) >= 500)) {
-                await new Promise((r) => setTimeout(r, 500 * (attempt + 1))); // простая задержка
-                return this._sendRequestAxios(method, request, attempt + 1);
-            }
-            throw new Error(`HTTP ${((_c = error.response) === null || _c === void 0 ? void 0 : _c.status) || "??"} - ${((_d = error.response) === null || _d === void 0 ? void 0 : _d.statusText) || error.message}`);
-        }
+        const { data } = await (0, axios_1.default)(axiosRequest);
+        return (_a = data.result) !== null && _a !== void 0 ? _a : data;
     }
     serializeBody(request) {
-        var _a, _b;
-        try {
-            const body = request.getBodyData
-                ? request.getBodyData()
-                : request.getBodyDataString
-                    ? JSON.parse(request.getBodyDataString())
-                    : {};
-            return body;
+        var _a, _b, _c, _d;
+        const body = (_b = (_a = request.getBodyData) === null || _a === void 0 ? void 0 : _a.call(request)) !== null && _b !== void 0 ? _b : {};
+        const contentType = (_d = (_c = request.getHeaders()) === null || _c === void 0 ? void 0 : _c["content-type"]) !== null && _d !== void 0 ? _d : "";
+        if (contentType.includes("application/x-www-form-urlencoded")) {
+            return querystring.stringify(body);
         }
-        catch {
-            return (_b = (_a = request.getBodyDataString) === null || _a === void 0 ? void 0 : _a.call(request)) !== null && _b !== void 0 ? _b : {};
-        }
-    }
-    async parseResponse(response) {
-        var _a, _b, _c;
-        const contentEncoding = response.headers["content-encoding"];
-        let buf = Buffer.isBuffer(response.data) ? response.data : Buffer.from(response.data);
-        // Распаковка, если сжатие
-        if (contentEncoding) {
-            switch (contentEncoding.toLowerCase()) {
-                case "gzip":
-                    buf = await (0, util_1.promisify)(zlib.gunzip)(buf);
-                    break;
-                case "deflate":
-                    buf = await (0, util_1.promisify)(zlib.inflate)(buf);
-                    break;
-                case "br":
-                    buf = await (0, util_1.promisify)(zlib.brotliDecompress)(buf);
-                    break;
-            }
-        }
-        const text = buf.toString("utf-8");
-        const contentType = (_a = response.headers["content-type"]) !== null && _a !== void 0 ? _a : "";
-        if (contentType.includes("application/json")) {
-            return (_c = (_b = JSON.parse(text)) === null || _b === void 0 ? void 0 : _b.result) !== null && _c !== void 0 ? _c : JSON.parse(text);
-        }
-        if (contentType.includes("xml") || text.startsWith("<")) {
-            return new fast_xml_parser_1.XMLParser({ ignoreAttributes: false }).parse(text);
-        }
-        return text;
+        return body;
     }
     get(request) {
         return this._sendRequestAxios("get", request);
