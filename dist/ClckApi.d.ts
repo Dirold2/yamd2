@@ -1,4 +1,4 @@
-import { HttpClientInterface } from "./Types/request";
+import { HttpClientInterface } from "hyperttp";
 /**
  * GET: clck.ru/--
  * @param URL Url to shorten

@@ -1,10 +1,13 @@
-import { type UrlExtractorInterface, type TrackId, type TrackUrl, type DownloadInfo, type ApiInitConfig, type InitResponse, DownloadTrackQuality, DownloadTrackCodec, type PlaylistId, type PlaylistUrl, type UserId, type UserName, type Playlist, type Track, type AlbumUrl, type AlbumId, type Album, type AlbumWithTracks, type ArtistId, type ArtistUrl, type FilledArtist } from "./Types";
+import { type TrackId, type TrackUrl, type DownloadInfo, type ApiInitConfig, type InitResponse, DownloadTrackQuality, DownloadTrackCodec, type PlaylistId, type PlaylistUrl, type UserId, type UserName, type Playlist, type Track, type AlbumUrl, type AlbumId, type Album, type AlbumWithTracks, type ArtistId, type ArtistUrl, type FilledArtist } from "./Types";
 import YMApi from "./YMApi";
 export default class WrappedYMApi {
     private api;
+    private client;
     private urlExtractor;
-    constructor(api?: YMApi, urlExtractor?: UrlExtractorInterface);
+    constructor(api?: YMApi);
+    /** Initializes the YMApi instance */
     init(config: ApiInitConfig): Promise<InitResponse>;
+    /** Returns the underlying YMApi instance */
     getApi(): YMApi;
     private getTrackId;
     private getAlbumId;

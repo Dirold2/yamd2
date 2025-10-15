@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = authRequest;
-const Network_1 = require("../Network");
+const hyperttp_1 = require("hyperttp");
 const config_1 = __importDefault(require("./config"));
 function authRequest() {
-    return new Network_1.Request(config_1.default.authApi);
+    return new hyperttp_1.Request(config_1.default.authApi);
 }

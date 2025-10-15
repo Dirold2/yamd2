@@ -38,14 +38,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const PreparedRequest_1 = require("./PreparedRequest");
 const config_1 = __importDefault(require("./PreparedRequest/config"));
-const Network_1 = require("./Network");
 const crypto = __importStar(require("crypto"));
 const timeout_1 = require("./utils/timeout");
 const Types_1 = require("./Types");
 const ClckApi_1 = __importDefault(require("./ClckApi"));
-const fast_xml_parser_1 = require("fast-xml-parser");
+const hyperttp_1 = require("hyperttp");
 class YMApi {
-    constructor(httpClient = new Network_1.HttpClientImproved(), config = config_1.default) {
+    constructor(httpClient = new hyperttp_1.HttpClientImproved({
+        timeout: 10000,
+        maxRetries: 2,
+        maxConcurrent: 20,
+        cacheTTL: 60000,
+        userAgent: "YandexMusicDesktopAppWindows/5.13.2",
+    }), config = config_1.default) {
         this.httpClient = httpClient;
         this.config = config;
         this.user = {
@@ -55,7 +60,7 @@ class YMApi {
             username: ""
         };
         this.serverOffsetCache = null;
-        this.SERVER_OFFSET_CACHE_TTL = 300000; // 5 minutes
+        this.SERVER_OFFSET_CACHE_TTL = 300000;
     }
     getAuthHeader() {
         return {
@@ -66,6 +71,14 @@ class YMApi {
         return {
             "X-Yandex-Music-Device": "os=unknown; os_version=unknown; manufacturer=unknown; model=unknown; clid=; device_id=unknown; uuid=unknown"
         };
+    }
+    async get(request, responseType) {
+        const response = await this.httpClient.get(request, responseType);
+        return response.result;
+    }
+    async post(request, responseType) {
+        const response = await this.httpClient.post(request, responseType);
+        return response.result;
     }
     /**
      * Authentication
@@ -86,7 +99,7 @@ class YMApi {
         }
         this.user.username = config.username;
         this.user.password = config.password;
-        const data = (await this.httpClient.get((0, PreparedRequest_1.authRequest)().setPath("/token").setQuery({
+        const data = (await this.get((0, PreparedRequest_1.authRequest)().setPath("/token").setQuery({
             grant_type: "password",
             username: this.user.username,
             password: this.user.password,
@@ -105,7 +118,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath("/account/status")
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /feed
@@ -115,7 +128,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath("/feed")
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      *
@@ -127,7 +140,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/landing3/chart/${ChartType}`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /landing3/new-playlists
@@ -137,7 +150,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath("/landing3/new-playlists")
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /landing3/new-releases
@@ -147,7 +160,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath("/landing3/new-releases")
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /landing3/podcasts
@@ -157,7 +170,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath("/landing3/podcasts")
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /genres
@@ -167,7 +180,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath("/genres")
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /search
@@ -190,7 +203,8 @@ class YMApi {
         if (options.pageSize !== void 0) {
             request.addQuery({ pageSize: String(options.pageSize) });
         }
-        return (await this.httpClient.get(request));
+        const response = await this.get(request);
+        return response;
     }
     /**
      * @param query Query
@@ -245,7 +259,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/users/${uid}/playlists/list`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     getPlaylist(playlistId, user = null) {
         const uid = [null, 0, ""].includes(user) ? this.user.uid : user;
@@ -264,7 +278,7 @@ class YMApi {
                 .addHeaders(this.getAuthHeader())
                 .addQuery({ richTracks: "true" });
         }
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /playlist/[playlist_uuid]
@@ -291,7 +305,7 @@ class YMApi {
             mixed,
             "rich-tracks": richTracks
         });
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * POST: /users/[user_id]/playlists/create
@@ -311,7 +325,8 @@ class YMApi {
             title: name,
             visibility
         });
-        return (await this.httpClient.post(request));
+        const responce = await this.post(request);
+        return responce;
     }
     /**
      * POST: /users/[user_id]/playlists/[playlist_kind]/delete
@@ -322,7 +337,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/users/${this.user.uid}/playlists/${playlistId}/delete`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.post(request);
+        return this.post(request);
     }
     /**
      * POST: /users/[user_id]/playlists/[playlist_kind]/name
@@ -336,7 +351,7 @@ class YMApi {
             .setBodyData({
             value: name
         });
-        return this.httpClient.post(request);
+        return this.post(request);
     }
     /**
      * POST: /users/[user_id]/playlists/[playlist_kind]/change-relative
@@ -359,7 +374,7 @@ class YMApi {
             ]),
             revision: String(revision)
         });
-        return this.httpClient.post(request);
+        return this.post(request);
     }
     /**
      * POST: /users/[user_id]/playlists/[playlist_kind]/change-relative
@@ -383,7 +398,7 @@ class YMApi {
             ]),
             revision: String(revision)
         });
-        return this.httpClient.post(request);
+        return this.post(request);
     }
     /**
      * GET: /tracks/[track_id]
@@ -394,7 +409,8 @@ class YMApi {
             .setPath(`/tracks/${trackId}`)
             .addHeaders(this.getAuthHeader())
             .addHeaders({ "content-type": "application/json" });
-        return (await this.httpClient.get(request));
+        const responce = await this.get(request);
+        return responce;
     }
     /**
      * GET: /tracks/[track_id]
@@ -415,7 +431,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/tracks/${trackId}/supplement`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /tracks/[track_id]/download-info
@@ -432,7 +448,7 @@ class YMApi {
             can_use_streaming: String(canUseStreaming),
             sign
         });
-        return (await this.httpClient.get(request));
+        return (await this.get(request));
     }
     async getTrackDownloadInfoNew(trackId, quality = Types_1.DownloadTrackQuality.Lossless) {
         if (!this.user.token)
@@ -451,22 +467,15 @@ class YMApi {
             transports: "raw",
             sign
         });
-        return (await this.httpClient.get(request));
+        return (await this.get(request));
     }
     /**
      * @returns track direct link
      */
     async getTrackDirectLink(trackDownloadUrl, short = false) {
         const request = (0, PreparedRequest_1.directLinkRequest)(trackDownloadUrl);
-        const rawResponse = (await this.httpClient.get(request));
-        let parsed;
-        if (typeof rawResponse === "string" && rawResponse.trim().startsWith("<")) {
-            parsed = new fast_xml_parser_1.XMLParser({ ignoreAttributes: false }).parse(rawResponse);
-        }
-        else {
-            parsed = rawResponse;
-        }
-        const downloadInfo = parsed["download-info"];
+        const rawResponse = (await this.httpClient.get(request, "xml"));
+        const downloadInfo = rawResponse["download-info"];
         if (!downloadInfo)
             throw new Error("Download info missing in response");
         const host = downloadInfo.host;
@@ -513,17 +522,18 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/tracks/${trackId}/similar`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /albums/[album_id]
      * @returns an album
      */
-    getAlbum(albumId, withTracks = false) {
+    async getAlbum(albumId, withTracks = false) {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/albums/${albumId}${withTracks ? "/with-tracks" : ""}`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        const response = this.get(request);
+        return await response;
     }
     getAlbumWithTracks(albumId) {
         return this.getAlbum(albumId, true);
@@ -537,7 +547,7 @@ class YMApi {
             .setPath(`/albums`)
             .setBodyData({ albumIds: albumIds.join() })
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.post(request);
+        return this.post(request);
     }
     /**
      * GET: /artists/[artist_id]
@@ -547,7 +557,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/artists/${artistId}`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /artists
@@ -558,7 +568,7 @@ class YMApi {
             .setPath(`/artists`)
             .setBodyData({ artistIds: artistIds.join() })
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.post(request);
+        return this.post(request);
     }
     /**
      * GET: /artists/[artist_id]/tracks
@@ -575,7 +585,7 @@ class YMApi {
         if (options.pageSize !== void 0) {
             request.addQuery({ pageSize: String(options.pageSize) });
         }
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /users/{userId}/likes/tracks
@@ -587,7 +597,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/users/${uid}/likes/tracks`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /users/{userId}/dislikes/tracks
@@ -599,7 +609,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/users/${uid}/dislikes/tracks`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /rotor/stations/list
@@ -611,7 +621,7 @@ class YMApi {
             .setPath(`/rotor/stations/list`)
             .addHeaders(this.getAuthHeader())
             .setQuery(language ? { language } : {});
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /rotor/stations/dashboard
@@ -622,7 +632,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath("/rotor/stations/dashboard")
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /rotor/station/{stationId}/tracks
@@ -636,7 +646,7 @@ class YMApi {
             .setPath(`/rotor/station/${stationId}/tracks`)
             .addHeaders(this.getAuthHeader())
             .addQuery(queue ? { queue } : {});
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /rotor/station/{stationId}/info
@@ -647,7 +657,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/rotor/station/${stationId}/info`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * POST: /rotor/session/new
@@ -665,7 +675,8 @@ class YMApi {
             .setPath(`/rotor/session/new`)
             .addHeaders(this.getAuthHeader())
             .setBodyData(body);
-        return this.httpClient.post(request);
+        const response = this.post(request);
+        return this.post(request);
     }
     /**
      * POST: /rotor/session/{sessionId}/tracks
@@ -682,7 +693,7 @@ class YMApi {
             .setPath(`/rotor/session/${sessionId}/tracks`)
             .addHeaders(this.getAuthHeader())
             .setBodyData(body);
-        return this.httpClient.post(request);
+        return this.post(request);
     }
     /**
      * GET: /queues
@@ -693,7 +704,7 @@ class YMApi {
             .setPath("/queues")
             .addHeaders(this.getFakeDeviceHeader())
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * GET: /queues/{queueId}
@@ -704,7 +715,7 @@ class YMApi {
         const request = (0, PreparedRequest_1.apiRequest)()
             .setPath(`/queues/${queueId}`)
             .addHeaders(this.getAuthHeader());
-        return this.httpClient.get(request);
+        return this.get(request);
     }
     /**
      * Get Yandex server time offset with caching

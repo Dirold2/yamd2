@@ -3,51 +3,87 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const hyperttp_1 = require("hyperttp");
 const Types_1 = require("./Types");
 const YMApi_1 = __importDefault(require("./YMApi"));
-const Network_1 = require("./Network");
 class WrappedYMApi {
-    constructor(api = new YMApi_1.default(), urlExtractor = new Network_1.UrlExtractor()) {
+    constructor(api = new YMApi_1.default()) {
         this.api = api;
-        this.urlExtractor = urlExtractor;
+        this.client = new hyperttp_1.HttpClientImproved({ maxRetries: 3, cacheTTL: 300000 });
+        this.urlExtractor = new hyperttp_1.UrlExtractor();
+        this.urlExtractor.registerPlatform("yandex", [
+            {
+                entity: "track",
+                regex: /music\.yandex\.ru\/track\/(?<id>\d+)/,
+                groupNames: ["id"]
+            },
+            {
+                entity: "track",
+                regex: /music\.yandex\.ru\/album\/(?<album>\d+)\/track\/(?<id>\d+)/,
+                groupNames: ["album", "id"]
+            },
+            {
+                entity: "album",
+                regex: /music\.yandex\.ru\/album\/(?<id>\d+)/,
+                groupNames: ["id"]
+            },
+            {
+                entity: "artist",
+                regex: /music\.yandex\.ru\/artist\/(?<id>\d+)/,
+                groupNames: ["id"]
+            },
+            {
+                entity: "playlist",
+                regex: /music\.yandex\.ru\/users\/(?<user>[\w\d\-_.]+)\/playlists\/(?<id>\d+)/,
+                groupNames: ["id", "user"]
+            },
+            {
+                entity: "playlist",
+                regex: /music\.yandex\.ru\/playlists?\/(?<uid>(?:ar\.)?[A-Za-z0-9-]+)/,
+                groupNames: ["uid"]
+            }
+        ]);
     }
+    /** Initializes the YMApi instance */
     init(config) {
         return this.api.init(config);
     }
+    /** Returns the underlying YMApi instance */
     getApi() {
         return this.api;
     }
     getTrackId(track) {
-        if (typeof track === "string") {
-            return this.urlExtractor.extractTrackId(track);
-        }
-        else {
+        var _a, _b;
+        if (typeof track !== "string")
             return track;
-        }
+        const extracted = this.urlExtractor.extractId(track, "track", "yandex");
+        return ((_b = (_a = extracted.id) !== null && _a !== void 0 ? _a : extracted.trackId) !== null && _b !== void 0 ? _b : (() => {
+            throw new Error(`Не удалось извлечь trackId из ссылки: ${track}`);
+        })());
     }
     getAlbumId(album) {
-        if (typeof album === "string") {
-            return this.urlExtractor.extractAlbumId(album);
-        }
-        else {
-            return album;
-        }
+        return typeof album === "string"
+            ? this.urlExtractor.extractId(`${album}`, "album", "yandex").id
+            : album;
     }
     getArtistId(artist) {
-        if (typeof artist === "string") {
-            return this.urlExtractor.extractArtistId(artist);
-        }
-        else {
-            return artist;
-        }
+        return typeof artist === "string"
+            ? this.urlExtractor.extractId(`${artist}`, "artist", "yandex").id
+            : artist;
     }
     getPlaylistId(playlist, user) {
+        var _a;
         if (typeof playlist === "string") {
-            return this.urlExtractor.extractPlaylistId(playlist);
-        }
-        else {
+            const extracted = this.urlExtractor.extractId(playlist, "playlist", "yandex");
+            if ("id" in extracted) {
+                return { id: extracted.id, user: (_a = extracted.user) !== null && _a !== void 0 ? _a : null };
+            }
+            if ("uid" in extracted) {
+                return { id: extracted.uid, user: null };
+            }
             return { id: playlist, user: user ? String(user) : null };
         }
+        return { id: playlist, user: user ? String(user) : null };
     }
     async getConcreteDownloadInfo(track, codec, quality) {
         const infos = await this.api.getTrackDownloadInfo(this.getTrackId(track));

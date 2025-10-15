@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = shortenLink;
-const Network_1 = require("./Network");
+const hyperttp_1 = require("hyperttp");
 const PreparedRequest_1 = require("./PreparedRequest");
-const defaultClient = new Network_1.HttpClientImproved();
+const defaultClient = new hyperttp_1.HttpClientImproved();
 /**
  * GET: clck.ru/--
  * @param URL Url to shorten

@@ -1,14 +1,16 @@
 import { type ApiConfig, type ApiInitConfig, type InitResponse, type GetGenresResponse, type SearchResponse, type Playlist, type GetTrackResponse, type Language, type GetTrackSupplementResponse, type GetTrackDownloadInfoResponse, type GetFeedResponse, type GetAccountStatusResponse, type Track, type TrackId, type SearchOptions, type ConcreteSearchOptions, type SearchAllResponse, type SearchArtistsResponse, type SearchTracksResponse, type SearchAlbumsResponse, type AlbumId, type Album, type AlbumWithTracks, type FilledArtist, type Artist, type ArtistId, type ArtistTracksResponse, type DisOrLikedTracksResponse, type ChartType, type ChartTracksResponse, type NewReleasesResponse, type NewPlaylistsResponse, type PodcastsResponse, type SimilarTracksResponse, type StationTracksResponse, type StationInfoResponse, type AllStationsListResponse, type RecomendedStationsListResponse, type QueuesResponse, type QueueResponse, type RotorSessionCreateResponse, DownloadTrackQuality, type FileInfoResponseNew } from "./Types";
-import type { HttpClientInterface } from "./Types/request";
+import { HttpClientImproved, RequestInterface, ResponseType } from "hyperttp";
 export default class YMApi {
     private httpClient;
     private config;
     private user;
     private serverOffsetCache;
     private readonly SERVER_OFFSET_CACHE_TTL;
-    constructor(httpClient?: HttpClientInterface, config?: ApiConfig);
+    constructor(httpClient?: HttpClientImproved, config?: ApiConfig);
     private getAuthHeader;
     private getFakeDeviceHeader;
+    get<T>(request: RequestInterface, responseType?: ResponseType): Promise<T>;
+    post<T>(request: RequestInterface, responseType?: ResponseType): Promise<T>;
     /**
      * Authentication
      * @returns access_token & uid
