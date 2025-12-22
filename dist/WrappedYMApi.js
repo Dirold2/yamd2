@@ -3,14 +3,137 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DownloadError = exports.ExtractionError = exports.YMApiError = void 0;
 const hyperttp_1 = require("hyperttp");
 const Types_1 = require("./Types");
 const YMApi_1 = __importDefault(require("./YMApi"));
+// ============================================
+// Custom Errors
+// ============================================
+class YMApiError extends Error {
+    constructor(message, code) {
+        super(message);
+        this.code = code;
+        this.name = "YMApiError";
+    }
+}
+exports.YMApiError = YMApiError;
+class ExtractionError extends YMApiError {
+    constructor(entity, input) {
+        super(`Не удалось извлечь ${entity} из: ${input}`, "EXTRACTION_FAILED");
+        this.entity = entity;
+        this.input = input;
+        this.name = "ExtractionError";
+    }
+}
+exports.ExtractionError = ExtractionError;
+class DownloadError extends YMApiError {
+    constructor(trackId, codec) {
+        super(`URL не найден для трека ${trackId} с кодеком ${codec}`, "DOWNLOAD_URL_NOT_FOUND");
+        this.trackId = trackId;
+        this.codec = codec;
+        this.name = "DownloadError";
+    }
+}
+exports.DownloadError = DownloadError;
+const CODEC_CONFIG = {
+    [Types_1.DownloadTrackCodec.MP3]: {
+        codecs: "mp3",
+        transport: "raw",
+        encrypted: false
+    },
+    [Types_1.DownloadTrackCodec.AAC]: {
+        codecs: "aac",
+        transport: "encraw",
+        encrypted: true
+    },
+    [Types_1.DownloadTrackCodec.AACMP4]: {
+        codecs: "aac-mp4",
+        transport: "encraw",
+        encrypted: true
+    },
+    [Types_1.DownloadTrackCodec.HEACC]: {
+        codecs: "he-aac",
+        transport: "encraw",
+        encrypted: true
+    },
+    [Types_1.DownloadTrackCodec.HEACCMP4]: {
+        codecs: "he-aac-mp4",
+        transport: "encraw",
+        encrypted: true
+    },
+    [Types_1.DownloadTrackCodec.FLAC]: {
+        codecs: "flac",
+        transport: "encraw",
+        encrypted: true
+    },
+    [Types_1.DownloadTrackCodec.FLACMP4]: {
+        codecs: "flac-mp4",
+        transport: "encraw",
+        encrypted: true
+    }
+};
+/** Приоритет кодеков: от лучшего качества к худшему */
+const CODEC_PRIORITY = [
+    Types_1.DownloadTrackCodec.FLACMP4,
+    Types_1.DownloadTrackCodec.FLAC,
+    Types_1.DownloadTrackCodec.AACMP4,
+    Types_1.DownloadTrackCodec.AAC,
+    Types_1.DownloadTrackCodec.HEACCMP4,
+    Types_1.DownloadTrackCodec.HEACC,
+    Types_1.DownloadTrackCodec.MP3
+];
+// ============================================
+// Main Class
+// ============================================
 class WrappedYMApi {
     constructor(api = new YMApi_1.default()) {
         this.api = api;
+        /**
+         * @ru Получить информацию для скачивания MP3 трека.
+         * @en Get MP3 track download information.
+         */
+        this.getMp3DownloadInfo = this.createDownloadInfoGetter(Types_1.DownloadTrackCodec.MP3, true);
+        /**
+         * @ru Получить информацию для скачивания AAC трека.
+         * @en Get AAC track download information.
+         */
+        this.getAacDownloadInfo = this.createDownloadInfoGetter(Types_1.DownloadTrackCodec.AAC);
+        /**
+         * @ru Получить информацию для скачивания FLAC трека.
+         * @en Get FLAC track download information.
+         */
+        this.getFlacDownloadInfo = this.createDownloadInfoGetter(Types_1.DownloadTrackCodec.FLAC);
+        /**
+         * @ru Получить информацию для скачивания FLAC-MP4 трека.
+         * @en Get FLAC-MP4 track download information.
+         */
+        this.getFlacMP4DownloadInfo = this.createDownloadInfoGetter(Types_1.DownloadTrackCodec.FLACMP4);
+        /**
+         * @ru Получить URL для скачивания MP3 трека.
+         * @en Get MP3 track download URL.
+         */
+        this.getMp3DownloadUrl = this.createDownloadUrlGetter(Types_1.DownloadTrackCodec.MP3, true);
+        /**
+         * @ru Получить URL для скачивания AAC трека.
+         * @en Get AAC track download URL.
+         */
+        this.getAacDownloadUrl = this.createDownloadUrlGetter(Types_1.DownloadTrackCodec.AAC);
+        /**
+         * @ru Получить URL для скачивания FLAC трека.
+         * @en Get FLAC track download URL.
+         */
+        this.getFlacDownloadUrl = this.createDownloadUrlGetter(Types_1.DownloadTrackCodec.FLAC);
+        /**
+         * @ru Получить URL для скачивания FLAC-MP4 трека.
+         * @en Get FLAC-MP4 track download URL.
+         */
+        this.getFlacMP4DownloadUrl = this.createDownloadUrlGetter(Types_1.DownloadTrackCodec.FLACMP4);
         this.client = new hyperttp_1.HttpClientImproved({ maxRetries: 3, cacheTTL: 300000 });
         this.urlExtractor = new hyperttp_1.UrlExtractor();
+        this.setupUrlExtractor();
+    }
+    setupUrlExtractor() {
         this.urlExtractor.registerPlatform("yandex", [
             {
                 entity: "track",
@@ -44,121 +167,148 @@ class WrappedYMApi {
             }
         ]);
     }
-    /** Initializes the YMApi instance */
+    // ============================================
+    // Public API
+    // ============================================
+    /**
+     * @ru Инициализация API клиента с аутентификацией.
+     * @en Initialize API client with authentication.
+     * @param config Параметры конфигурации API.
+     * @returns Промис с данными авторизации.
+     */
     init(config) {
         return this.api.init(config);
     }
-    /** Returns the underlying YMApi instance */
+    /**
+     * @ru Получить экземпляр базового API класса.
+     * @en Get instance of the base API class.
+     * @returns Экземпляр YMApi.
+     */
     getApi() {
         return this.api;
     }
+    // ============================================
+    // ID Extractors (Private)
+    // ============================================
+    extractNumericId(input, entity) {
+        const extracted = this.urlExtractor.extractId(input, entity, "yandex");
+        const id = extracted.id;
+        if (id === undefined)
+            throw new ExtractionError(entity, input);
+        return typeof id === "string" ? parseInt(id, 10) : id;
+    }
     getTrackId(track) {
-        var _a, _b;
+        var _a;
         if (typeof track !== "string")
             return track;
         const extracted = this.urlExtractor.extractId(track, "track", "yandex");
-        return ((_b = (_a = extracted.id) !== null && _a !== void 0 ? _a : extracted.trackId) !== null && _b !== void 0 ? _b : (() => {
-            throw new Error(`Не удалось извлечь trackId из ссылки: ${track}`);
-        })());
+        const id = (_a = extracted.id) !== null && _a !== void 0 ? _a : extracted.trackId;
+        if (id === undefined)
+            throw new ExtractionError("trackId", track);
+        return id;
     }
     getAlbumId(album) {
         return typeof album === "string"
-            ? this.urlExtractor.extractId(`${album}`, "album", "yandex").id
+            ? this.extractNumericId(album, "album")
             : album;
     }
     getArtistId(artist) {
         return typeof artist === "string"
-            ? this.urlExtractor.extractId(`${artist}`, "artist", "yandex").id
+            ? this.extractNumericId(artist, "artist")
             : artist;
     }
     getPlaylistId(playlist, user) {
-        var _a;
-        if (typeof playlist === "string") {
-            const extracted = this.urlExtractor.extractId(playlist, "playlist", "yandex");
-            if ("id" in extracted) {
-                return { id: extracted.id, user: (_a = extracted.user) !== null && _a !== void 0 ? _a : null };
-            }
-            if ("uid" in extracted) {
-                return { id: extracted.uid, user: null };
-            }
-            return { id: playlist, user: user ? String(user) : null };
+        const userStr = user ? String(user) : null;
+        if (typeof playlist !== "string") {
+            return { id: playlist, user: userStr };
         }
-        return { id: playlist, user: user ? String(user) : null };
-    }
-    async getConcreteDownloadInfo(track, codec, quality) {
-        const infos = await this.api.getTrackDownloadInfo(this.getTrackId(track));
-        return infos
-            .filter((i) => i.codec === codec)
-            .sort((a, b) => quality === "high"
-            ? a.bitrateInKbps - b.bitrateInKbps
-            : b.bitrateInKbps - a.bitrateInKbps)
-            .pop();
-    }
-    async getConcreteDownloadInfoNew(track, codec, quality = Types_1.DownloadTrackQuality.Lossless) {
-        var _a, _b, _c, _d, _e, _f;
-        const info = await this.api.getTrackDownloadInfoNew(this.getTrackId(track), quality);
-        const downloadUrl = ((_a = info === null || info === void 0 ? void 0 : info.downloadInfo) === null || _a === void 0 ? void 0 : _a.url) || ((_c = (_b = info === null || info === void 0 ? void 0 : info.downloadInfo) === null || _b === void 0 ? void 0 : _b.urls) === null || _c === void 0 ? void 0 : _c[0]);
-        if (!downloadUrl) {
-            throw new Error(`Download URL not found in response for track ${track}`);
+        const extracted = this.urlExtractor.extractId(playlist, "playlist", "yandex");
+        if ("uid" in extracted) {
+            return { id: extracted.uid, user: null };
         }
-        const downloadInfo = {
-            codec,
-            bitrateInKbps: ((_d = info.downloadInfo) === null || _d === void 0 ? void 0 : _d.bitrate) || 0,
+        if ("id" in extracted) {
+            return {
+                id: extracted.id,
+                user: extracted.user ? String(extracted.user) : null
+            };
+        }
+        return { id: playlist, user: userStr };
+    }
+    // ============================================
+    // Core Download Methods
+    // ============================================
+    /**
+     * @ru Получить информацию для скачивания трека.
+     * @en Get track download information.
+     * @param track ID трека или URL.
+     * @param options Опции скачивания (кодек, качество, etc.).
+     * @returns Промис с информацией о скачивании.
+     */
+    async getDownloadInfo(track, options = {}) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        const { codec = Types_1.DownloadTrackCodec.MP3, quality = Types_1.DownloadTrackQuality.Lossless, forceRaw = false } = options;
+        const config = CODEC_CONFIG[codec];
+        const transport = forceRaw ? "raw" : config.transport;
+        const encrypted = forceRaw ? false : config.encrypted;
+        const info = await this.api.getTrackDownloadInfoNew(this.getTrackId(track), quality, config.codecs, transport);
+        const downloadUrl = (_b = (_a = info === null || info === void 0 ? void 0 : info.downloadInfo) === null || _a === void 0 ? void 0 : _a.url) !== null && _b !== void 0 ? _b : (_d = (_c = info === null || info === void 0 ? void 0 : info.downloadInfo) === null || _c === void 0 ? void 0 : _c.urls) === null || _d === void 0 ? void 0 : _d[0];
+        if (!downloadUrl)
+            throw new DownloadError(track, codec);
+        return {
+            codec: codec,
+            bitrateInKbps: (_f = (_e = info.downloadInfo) === null || _e === void 0 ? void 0 : _e.bitrate) !== null && _f !== void 0 ? _f : 0,
             downloadInfoUrl: downloadUrl,
             direct: true,
-            quality: (((_e = info.downloadInfo) === null || _e === void 0 ? void 0 : _e.quality) || quality),
-            gain: ((_f = info.downloadInfo) === null || _f === void 0 ? void 0 : _f.gain) || false,
-            preview: false
+            quality: ((_h = (_g = info.downloadInfo) === null || _g === void 0 ? void 0 : _g.quality) !== null && _h !== void 0 ? _h : quality),
+            gain: (_k = (_j = info.downloadInfo) === null || _j === void 0 ? void 0 : _j.gain) !== null && _k !== void 0 ? _k : false,
+            preview: false,
+            encrypted
         };
-        return downloadInfo;
     }
-    getMp3DownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.getConcreteDownloadInfoNew(track, Types_1.DownloadTrackCodec.MP3, quality);
+    /**
+     * @ru Получить прямую ссылку для скачивания трека.
+     * @en Get direct download URL for track.
+     * @param track ID трека или URL.
+     * @param options Опции скачивания.
+     * @returns Промис с прямой ссылкой на скачивание.
+     */
+    async getDownloadUrl(track, options = {}) {
+        const info = await this.getDownloadInfo(track, options);
+        return this.api.getTrackDirectLinkNew(info.downloadInfoUrl);
     }
-    getMp3DownloadInfoOld(track, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.getConcreteDownloadInfo(track, Types_1.DownloadTrackCodec.MP3, quality);
+    // ============================================
+    // FFmpeg & Best Quality Methods
+    // ============================================
+    /**
+     * @ru Получить URL для скачивания в FFmpeg-compatible формате (MP3 raw).
+     * @en Get FFmpeg-compatible download URL (raw MP3).
+     * @param track Track ID or URL to download.
+     * @param quality Quality level for download.
+     * @returns Promise with download URL or null on error.
+     */
+    async getDownloadUrlForFFmpeg(track, quality = Types_1.DownloadTrackQuality.Lossless) {
+        try {
+            return await this.getDownloadUrl(track, {
+                codec: Types_1.DownloadTrackCodec.MP3,
+                quality,
+                forceRaw: true
+            });
+        }
+        catch {
+            return null;
+        }
     }
-    getAacDownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.getConcreteDownloadInfoNew(track, Types_1.DownloadTrackCodec.AAC, quality);
-    }
-    getFlacDownloadInfo(track, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.getConcreteDownloadInfoNew(track, Types_1.DownloadTrackCodec.FLAC, quality);
-    }
-    async getMp3DownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.api.getTrackDirectLink((await this.getMp3DownloadInfoOld(track, quality)).downloadInfoUrl);
-    }
-    async getMp3DownloadUrlNew(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.api.getTrackDirectLinkNew((await this.getMp3DownloadInfo(track, quality)).downloadInfoUrl);
-    }
-    async getAacDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.api.getTrackDirectLinkNew((await this.getAacDownloadInfo(track, quality)).downloadInfoUrl);
-    }
-    async getFlacDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
-        return this.api.getTrackDirectLinkNew((await this.getFlacDownloadInfo(track, quality)).downloadInfoUrl);
-    }
-    async getBestDownloadUrl(track, short = false, quality = Types_1.DownloadTrackQuality.Lossless) {
-        const codecsPriority = [
-            Types_1.DownloadTrackCodec.FLAC,
-            Types_1.DownloadTrackCodec.AAC,
-            Types_1.DownloadTrackCodec.MP3
-        ];
-        for (const codec of codecsPriority) {
+    /**
+     * @ru Получить лучший доступный URL для скачивания по приоритету кодеков.
+     * @en Get best available download URL based on codec priority.
+     * @param track Track ID or URL to download.
+     * @param quality Quality level for download.
+     * @returns Promise with best available download URL or null.
+     */
+    async getBestDownloadUrl(track, quality = Types_1.DownloadTrackQuality.Lossless) {
+        for (const codec of CODEC_PRIORITY) {
             try {
-                let info = null;
-                switch (codec) {
-                    case Types_1.DownloadTrackCodec.FLAC:
-                        info = await this.getFlacDownloadInfo(track, quality);
-                        break;
-                    case Types_1.DownloadTrackCodec.AAC:
-                        info = await this.getAacDownloadInfo(track, quality);
-                        break;
-                    case Types_1.DownloadTrackCodec.MP3:
-                        info = await this.getMp3DownloadInfo(track, quality);
-                        break;
-                }
-                if (info === null || info === void 0 ? void 0 : info.downloadInfoUrl) {
-                    return await this.api.getTrackDirectLink(info.downloadInfoUrl, short);
-                }
+                return await this.getDownloadUrl(track, { codec, quality });
             }
             catch {
                 continue;
@@ -166,22 +316,74 @@ class WrappedYMApi {
         }
         return null;
     }
-    getPlaylist(playlist, user) {
-        const pl = this.getPlaylistId(playlist, user);
-        if (typeof pl.id === "number") {
-            return this.api.getPlaylist(pl.id, pl.user);
-        }
-        return this.api.getPlaylist(pl.id);
+    /**
+     * @ru Проверить, является ли URL зашифрованным.
+     * @en Check if URL is encrypted.
+     * @param url URL to check for encryption.
+     * @returns True if URL is encrypted, false otherwise.
+     */
+    isEncryptedUrl(url) {
+        return url.includes("/music-v2/crypt/") && url.includes("kts=");
     }
+    // ============================================
+    // Convenience Methods (Factory-based)
+    // ============================================
+    createDownloadInfoGetter(codec, forceRaw = false) {
+        return (track, quality = Types_1.DownloadTrackQuality.Lossless) => this.getDownloadInfo(track, { codec, quality, forceRaw });
+    }
+    createDownloadUrlGetter(codec, forceRaw = false) {
+        return (track, quality = Types_1.DownloadTrackQuality.Lossless) => this.getDownloadUrl(track, { codec, quality, forceRaw });
+    }
+    // ============================================
+    // Entity Getters
+    // ============================================
+    /**
+     * @ru Получить плейлист по ID или URL.
+     * @en Get playlist by ID or URL.
+     * @param playlist Playlist ID or URL.
+     * @param user Optional user identifier for playlist ownership.
+     * @returns Promise with playlist information.
+     */
+    getPlaylist(playlist, user) {
+        const { id, user: extractedUser } = this.getPlaylistId(playlist, user);
+        return typeof id === "number"
+            ? this.api.getPlaylist(id, extractedUser)
+            : this.api.getPlaylist(id);
+    }
+    /**
+     * @ru Получить трек по ID или URL.
+     * @en Get track by ID or URL.
+     * @param track Track ID or URL.
+     * @returns Promise with track information.
+     */
     getTrack(track) {
         return this.api.getSingleTrack(this.getTrackId(track));
     }
+    /**
+     * @ru Получить альбом по ID или URL.
+     * @en Get album by ID or URL.
+     * @param album Album ID or URL.
+     * @param withTracks Whether to include tracks in response.
+     * @returns Promise with album information.
+     */
     getAlbum(album, withTracks = false) {
         return this.api.getAlbum(this.getAlbumId(album), withTracks);
     }
+    /**
+     * @ru Получить альбом с треками по ID или URL.
+     * @en Get album with tracks by ID or URL.
+     * @param album Album ID or URL.
+     * @returns Promise with album including tracks.
+     */
     getAlbumWithTracks(album) {
         return this.api.getAlbumWithTracks(this.getAlbumId(album));
     }
+    /**
+     * @ru Получить исполнителя по ID или URL.
+     * @en Get artist by ID or URL.
+     * @param artist Artist ID or URL.
+     * @returns Promise with artist information.
+     */
     getArtist(artist) {
         return this.api.getArtist(this.getArtistId(artist));
     }

@@ -1,4 +1,4 @@
-import YMApi from "./YMApi";
-import WrappedYMApi from "./WrappedYMApi";
-import * as Types from "./Types";
+import YMApi from "./YMApi.js";
+import WrappedYMApi from "./WrappedYMApi.js";
+import * as Types from "./Types/index.js";
 export { YMApi, WrappedYMApi, Types };

@@ -37,9 +37,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Types = exports.WrappedYMApi = exports.YMApi = void 0;
-const YMApi_1 = __importDefault(require("./YMApi"));
-exports.YMApi = YMApi_1.default;
-const WrappedYMApi_1 = __importDefault(require("./WrappedYMApi"));
-exports.WrappedYMApi = WrappedYMApi_1.default;
-const Types = __importStar(require("./Types"));
+const YMApi_js_1 = __importDefault(require("./YMApi.js"));
+exports.YMApi = YMApi_js_1.default;
+const WrappedYMApi_js_1 = __importDefault(require("./WrappedYMApi.js"));
+exports.WrappedYMApi = WrappedYMApi_js_1.default;
+const Types = __importStar(require("./Types/index.js"));
 exports.Types = Types;

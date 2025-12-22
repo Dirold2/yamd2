@@ -1,137 +1,219 @@
-import { type ApiConfig, type ApiInitConfig, type InitResponse, type GetGenresResponse, type SearchResponse, type Playlist, type GetTrackResponse, type Language, type GetTrackSupplementResponse, type GetTrackDownloadInfoResponse, type GetFeedResponse, type GetAccountStatusResponse, type Track, type TrackId, type SearchOptions, type ConcreteSearchOptions, type SearchAllResponse, type SearchArtistsResponse, type SearchTracksResponse, type SearchAlbumsResponse, type AlbumId, type Album, type AlbumWithTracks, type FilledArtist, type Artist, type ArtistId, type ArtistTracksResponse, type DisOrLikedTracksResponse, type ChartType, type ChartTracksResponse, type NewReleasesResponse, type NewPlaylistsResponse, type PodcastsResponse, type SimilarTracksResponse, type StationTracksResponse, type StationInfoResponse, type AllStationsListResponse, type RecomendedStationsListResponse, type QueuesResponse, type QueueResponse, type RotorSessionCreateResponse, DownloadTrackQuality, type FileInfoResponseNew } from "./Types";
-import { HttpClientImproved, RequestInterface, ResponseType } from "hyperttp";
+import { type ApiConfig, type ApiInitConfig, type InitResponse, type GetGenresResponse, type Playlist, type GetTrackResponse, type Language, type GetTrackSupplementResponse, type GetTrackDownloadInfoResponse, type GetFeedResponse, type GetAccountStatusResponse, type Track, type TrackId, type SearchOptions, type ConcreteSearchOptions, type SearchAllResponse, type SearchArtistsResponse, type SearchTracksResponse, type SearchAlbumsResponse, type AlbumId, type Album, type AlbumWithTracks, type FilledArtist, type Artist, type ArtistId, type ArtistTracksResponse, type DisOrLikedTracksResponse, type ChartType, type ChartTracksResponse, type NewReleasesResponse, type NewPlaylistsResponse, type PodcastsResponse, type SimilarTracksResponse, type StationTracksResponse, type StationInfoResponse, type AllStationsListResponse, type RecomendedStationsListResponse, type QueuesResponse, type QueueResponse, type RotorSessionCreateResponse, DownloadTrackQuality, type FileInfoResponseNew, type Codecs, type Transport } from "./Types/index.js";
+import { HttpClientImproved } from "hyperttp";
+export declare class YMApiError extends Error {
+    readonly code?: string | undefined;
+    constructor(message: string, code?: string | undefined);
+}
+export declare class AuthError extends YMApiError {
+    constructor(message?: string);
+}
+export declare class TrackNotFoundError extends YMApiError {
+    readonly trackId: TrackId;
+    constructor(trackId: TrackId);
+}
+export declare class DownloadInfoError extends YMApiError {
+    constructor(message: string);
+}
+export declare class InvalidUrlError extends YMApiError {
+    readonly url: string;
+    constructor(url: string);
+}
+type UserId = number | string | null;
+type SearchType = "all" | "artist" | "track" | "album";
+type SearchResponseMap = {
+    all: SearchAllResponse;
+    artist: SearchArtistsResponse;
+    track: SearchTracksResponse;
+    album: SearchAlbumsResponse;
+};
 export default class YMApi {
-    private httpClient;
-    private config;
-    private user;
+    private readonly httpClient;
+    private readonly config;
+    private readonly user;
     private serverOffsetCache;
-    private readonly SERVER_OFFSET_CACHE_TTL;
     constructor(httpClient?: HttpClientImproved, config?: ApiConfig);
-    private getAuthHeader;
-    private getFakeDeviceHeader;
-    get<T>(request: RequestInterface, responseType?: ResponseType): Promise<T>;
-    post<T>(request: RequestInterface, responseType?: ResponseType): Promise<T>;
+    private get authHeader();
+    private get deviceHeader();
+    private resolveUserId;
+    private assertAuthenticated;
+    /** Creates an authenticated API request */
+    private createRequest;
+    /** Generic GET request with result extraction */
+    private get;
+    /** Generic POST request with result extraction */
+    private post;
     /**
-     * Authentication
-     * @returns access_token & uid
+     * POST: /token
+     * @ru Инициализация API клиента с аутентификацией.
+     * @en Initialize API client with authentication.
+     * @param config Параметры конфигурации API.
+     * @returns Промис с данными авторизации.
      */
     init(config: ApiInitConfig): Promise<InitResponse>;
     /**
      * GET: /account/status
-     * @returns account status for current user
+     * @ru Получить статус аккаунта текущего пользователя.
+     * @en Get account status of current user.
+     * @returns Promise с информацией об аккаунте.
      */
     getAccountStatus(): Promise<GetAccountStatusResponse>;
     /**
      * GET: /feed
-     * @returns the user's feed
+     * @ru Получить ленту активности пользователя.
+     * @en Get user's activity feed.
+     * @returns Promise с лентой активности.
      */
     getFeed(): Promise<GetFeedResponse>;
     /**
-     *
-     * @param ChartType Type of chart.
-     * GET: /landing3/chart/{ChartType}
-     * @returns chart of songs.
+     * GET: /landing3/chart/{chartType}
+     * @ru Получить треки из чарта.
+     * @en Get tracks from chart.
+     * @param chartType Тип чарта (россия или мир).
+     * @returns Promise с треками чарта.
      */
-    getChart(ChartType: ChartType): Promise<ChartTracksResponse>;
+    getChart(chartType: ChartType): Promise<ChartTracksResponse>;
     /**
      * GET: /landing3/new-playlists
-     * @returns new playlists (for you).
+     * @ru Получить новые плейлисты.
+     * @en Get new playlists.
+     * @returns Promise с новыми плейлистами.
      */
     getNewPlaylists(): Promise<NewPlaylistsResponse>;
     /**
      * GET: /landing3/new-releases
-     * @returns new releases.
+     * @ru Получить новые релизы.
+     * @en Get new releases.
+     * @returns Promise с новыми релизами.
      */
     getNewReleases(): Promise<NewReleasesResponse>;
     /**
      * GET: /landing3/podcasts
-     * @returns all podcasts.
+     * @ru Получить подкасты.
+     * @en Get podcasts.
+     * @returns Promise с подкастами.
      */
     getPodcasts(): Promise<PodcastsResponse>;
     /**
      * GET: /genres
-     * @returns a list of music genres
+     * @ru Получить список музыкальных жанров.
+     * @en Get list of music genres.
+     * @returns Promise со списком жанров.
      */
     getGenres(): Promise<GetGenresResponse>;
     /**
      * GET: /search
-     * Search artists, tracks, albums.
-     * @returns Every {type} with query in it's title.
+     * @ru Поиск контента в Yandex Music.
+     * @en Search content in Yandex Music.
+     * @param query Строка поиска.
+     * @param options Опции поиска.
+     * @returns Promise с результатами поиска.
      */
-    search(query: string, options?: SearchOptions): Promise<SearchResponse>;
+    search<T extends SearchType = "all">(query: string, options?: SearchOptions & {
+        type?: T;
+    }): Promise<SearchResponseMap[T]>;
     /**
-     * @param query Query
-     * @param options Options
-     * @returns Every artist with query in it's title.
+     * @ru Поиск исполнителей.
+     * @en Search for artists.
+     * @param query Строка поиска.
+     * @param options Опции поиска.
+     * @returns Promise с результатами поиска исполнителей.
      */
     searchArtists(query: string, options?: ConcreteSearchOptions): Promise<SearchArtistsResponse>;
     /**
-     * @param query Query
-     * @param options Options
-     * @returns Every track with query in it's title.
+     * @ru Поиск треков.
+     * @en Search for tracks.
+     * @param query Строка поиска.
+     * @param options Опции поиска.
+     * @returns Promise с результатами поиска треков.
      */
     searchTracks(query: string, options?: ConcreteSearchOptions): Promise<SearchTracksResponse>;
     /**
-     * @param query Query
-     * @param options Options
-     * @returns Every album with query in it's title.
+     * @ru Поиск альбомов.
+     * @en Search for albums.
+     * @param query Строка поиска.
+     * @param options Опции поиска.
+     * @returns Promise с результатами поиска альбомов.
      */
     searchAlbums(query: string, options?: ConcreteSearchOptions): Promise<SearchAlbumsResponse>;
     /**
-     * @param query Query
-     * @param options Options
-     * @returns Everything with query in it's title.
+     * @ru Поиск контента всех типов.
+     * @en Search all content types.
+     * @param query Строка поиска.
+     * @param options Опции поиска.
+     * @returns Promise с результатами поиска всех типов.
      */
     searchAll(query: string, options?: ConcreteSearchOptions): Promise<SearchAllResponse>;
     /**
-     * GET: /users/[user_id]/playlists/list
-     * @returns a user's playlists.
+     * GET: /users/{uid}/playlists/list
+     * @ru Получить плейлисты пользователя.
+     * @en Get user's playlists.
+     * @param userId ID пользователя (опционально).
+     * @returns Promise с массивом плейлистов.
      */
-    getUserPlaylists(user?: number | string | null): Promise<Array<Playlist>>;
+    getUserPlaylists(userId?: UserId): Promise<Playlist[]>;
     /**
-     * GET: /users/[user_id]/playlists/[playlist_kind] when `playlistId` is a number (kind)
-     * GET: /playlist/[playlist_uuid] when `playlistId` is a string (UUID)
-     * @returns a playlist without tracks
+     * GET: /users/{uid}/playlists/{id} or GET: /playlist/{id}
+     * @ru Получить плейлист по ID.
+     * @en Get playlist by ID.
+     * @param playlistId Идентификатор плейлиста.
+     * @param user ID пользователя (для числовых ID).
+     * @returns Promise с плейлистом.
      */
-    getPlaylist(playlistId: number, user?: number | string | null): Promise<Playlist>;
+    getPlaylist(playlistId: number, user?: UserId): Promise<Playlist>;
     getPlaylist(playlistId: string): Promise<Playlist>;
-    /**
-     * GET: /playlist/[playlist_uuid]
-     * @returns a playlist without tracks
-     */
+    /** @deprecated Используйте getPlaylist(string) вместо этого метода.
+     *  @en Use getPlaylist(string) instead of this method. */
     getPlaylistNew(playlistId: string): Promise<Playlist>;
     /**
-     * GET: /users/[user_id]/playlists
-     * @returns an array of playlists with tracks
+     * GET: /users/{uid}/playlists
+     * @ru Получить несколько плейлистов.
+     * @en Get multiple playlists.
+     * @param playlists Массив ID плейлистов.
+     * @param user ID пользователя.
+     * @param options Опции загрузки.
+     * @returns Promise с массивом плейлистов.
      */
-    getPlaylists(playlists: Array<number>, user?: number | string | null, options?: {
+    getPlaylists(playlists: number[], user?: UserId, options?: {
         mixed?: boolean;
         "rich-tracks"?: boolean;
-    }): Promise<Array<Playlist>>;
+    }): Promise<Playlist[]>;
     /**
-     * POST: /users/[user_id]/playlists/create
-     * Create a new playlist
-     * @returns Playlist
+     * POST: /users/{uid}/playlists/create
+     * @ru Создать новый плейлист.
+     * @en Create new playlist.
+     * @param name Название плейлиста.
+     * @param options Опции видимости.
+     * @returns Promise с созданным плейлистом.
      */
     createPlaylist(name: string, options?: {
         visibility?: "public" | "private";
     }): Promise<Playlist>;
     /**
-     * POST: /users/[user_id]/playlists/[playlist_kind]/delete
-     * Remove a playlist
-     * @returns "ok" | string
+     * POST: /users/{uid}/playlists/{id}/delete
+     * @ru Удалить плейлист.
+     * @en Delete playlist.
+     * @param playlistId ID плейлиста.
+     * @returns Promise с результатом удаления.
      */
     removePlaylist(playlistId: number): Promise<"ok" | string>;
     /**
-     * POST: /users/[user_id]/playlists/[playlist_kind]/name
-     * Change playlist name
-     * @returns Playlist
+     * POST: /users/{uid}/playlists/{id}/name
+     * @ru Переименовать плейлист.
+     * @en Rename playlist.
+     * @param playlistId ID плейлиста.
+     * @param name Новое название.
+     * @returns Promise с обновленным плейлистом.
      */
     renamePlaylist(playlistId: number, name: string): Promise<Playlist>;
     /**
-     * POST: /users/[user_id]/playlists/[playlist_kind]/change-relative
-     * Add tracks to the playlist
-     * @returns Playlist
+     * POST: /users/{uid}/playlists/{id}/change-relative
+     * @ru Добавить треки в плейлист.
+     * @en Add tracks to playlist.
+     * @param playlistId ID плейлиста.
+     * @param tracks Массив треков для добавления.
+     * @param revision Ревизия плейлиста.
+     * @param options Опции позиции.
+     * @returns Promise с обновленным плейлистом.
      */
     addTracksToPlaylist(playlistId: number, tracks: Array<{
         id: number;
@@ -140,9 +222,14 @@ export default class YMApi {
         at?: number;
     }): Promise<Playlist>;
     /**
-     * POST: /users/[user_id]/playlists/[playlist_kind]/change-relative
-     * Remove tracks from the playlist
-     * @returns Playlist
+     * POST: /users/{uid}/playlists/{id}/change-relative
+     * @ru Удалить треки из плейлиста.
+     * @en Remove tracks from playlist.
+     * @param playlistId ID плейлиста.
+     * @param tracks Массив треков для удаления.
+     * @param revision Ревизия плейлиста.
+     * @param options Опции диапазона.
+     * @returns Promise с обновленным плейлистом.
      */
     removeTracksFromPlaylist(playlistId: number, tracks: Array<{
         id: number;
@@ -152,141 +239,200 @@ export default class YMApi {
         to?: number;
     }): Promise<Playlist>;
     /**
-     * GET: /tracks/[track_id]
-     * @returns an array of playlists with tracks
+     * @ru Получить информацию о треке по ID.
+     * @en Get track information by ID.
+     * @param trackId Идентификатор трека.
+     * @returns Promise с информацией о треке.
      */
     getTrack(trackId: TrackId): Promise<GetTrackResponse>;
     /**
-     * GET: /tracks/[track_id]
-     * @returns single track
+     * @ru Получить одиночный трек по ID.
+     * @en Get single track by ID.
+     * @param trackId Идентификатор трека.
+     * @returns Promise с треком.
      */
     getSingleTrack(trackId: TrackId): Promise<Track>;
     /**
-     * GET: /tracks/[track_id]/supplement
-     * @returns an array of playlists with tracks
+     * @ru Получить дополнительную информацию о треке.
+     * @en Get additional track information.
+     * @param trackId Идентификатор трека.
+     * @returns Promise с дополнительной информацией.
      */
     getTrackSupplement(trackId: TrackId): Promise<GetTrackSupplementResponse>;
     /**
-     * GET: /tracks/[track_id]/download-info
-     * @returns track download information
-     */
-    getTrackDownloadInfo(trackId: TrackId, quality?: DownloadTrackQuality, canUseStreaming?: boolean): Promise<GetTrackDownloadInfoResponse>;
-    getTrackDownloadInfoNew(trackId: number, quality?: DownloadTrackQuality): Promise<FileInfoResponseNew>;
-    /**
-     * @returns track direct link
-     */
-    getTrackDirectLink(trackDownloadUrl: string, short?: boolean): Promise<string>;
-    getTrackDirectLinkNew(trackUrl: string): Promise<string>;
-    extractTrackId(url: string): string;
-    /**
-     * @returns track sharing link
-     */
-    getTrackShareLink(track: TrackId | Track): Promise<string>;
-    /**
-     * GET: /tracks/{track_id}/similar
-     * @returns simmilar tracks
+     * @ru Получить похожие треки.
+     * @en Get similar tracks.
+     * @param trackId Идентификатор трека.
+     * @returns Promise с похожими треками.
      */
     getSimilarTracks(trackId: TrackId): Promise<SimilarTracksResponse>;
     /**
-     * GET: /albums/[album_id]
-     * @returns an album
+     * @ru Получить информацию для скачивания трека.
+     * @en Get track download information.
+     * @param trackId Идентификатор трека.
+     * @param quality Качество загрузки.
+     * @param canUseStreaming Разрешить использование стриминга.
+     * @returns Promise с информацией о загрузке.
      */
-    getAlbum(albumId: AlbumId, withTracks?: boolean): Promise<Album>;
+    getTrackDownloadInfo(trackId: TrackId, quality?: DownloadTrackQuality, canUseStreaming?: boolean): Promise<GetTrackDownloadInfoResponse>;
+    /**
+     * @ru Получить информацию для скачивания трека (новый метод).
+     * @en Get track download information (new method).
+     * @param trackId Идентификатор трека.
+     * @param quality Качество загрузки.
+     * @param codecs Кодеки.
+     * @param transport Тип транспорта.
+     * @returns Promise с информацией о файле.
+     */
+    getTrackDownloadInfoNew(trackId: number, quality?: DownloadTrackQuality, codecs?: Codecs, transport?: Transport): Promise<FileInfoResponseNew>;
+    /**
+     * @ru Получить прямую ссылку на скачивание трека.
+     * @en Get direct download link for track.
+     * @param trackDownloadUrl URL для скачивания.
+     * @param short Использовать короткую ссылку.
+     * @returns Promise со ссылкой для скачивания.
+     */
+    getTrackDirectLink(trackDownloadUrl: string, short?: boolean): Promise<string>;
+    /**
+     * @ru Получить прямую ссылку на трек (новый метод).
+     * @en Get direct track link (new method).
+     * @param trackUrl URL трека.
+     * @returns Прямая ссылка на трек.
+     */
+    getTrackDirectLinkNew(trackUrl: string): string;
+    /**
+     * @ru Извлечь ID трека из URL.
+     * @en Extract track ID from URL.
+     * @param url URL трека.
+     * @returns ID трека.
+     */
+    extractTrackId(url: string): string;
+    /**
+     * @ru Получить ссылку для поделиться треком.
+     * @en Get share link for track.
+     * @param track Трек или ID трека.
+     * @returns Promise со ссылкой для поделиться.
+     */
+    getTrackShareLink(track: TrackId | Track): Promise<string>;
+    /**
+     * @ru Получить информацию об альбоме.
+     * @en Get album information.
+     * @param albumId Идентификатор альбома.
+     * @param withTracks Включать треки в ответ.
+     * @returns Promise с информацией об альбоме.
+     */
+    getAlbum(albumId: AlbumId, withTracks?: boolean): Promise<Album | AlbumWithTracks>;
+    /**
+     * @ru Получить альбом с треками.
+     * @en Get album with tracks.
+     * @param albumId Идентификатор альбома.
+     * @returns Promise с альбомом и треками.
+     */
     getAlbumWithTracks(albumId: AlbumId): Promise<AlbumWithTracks>;
     /**
-     * GET: /albums
-     * @returns an albums
+     * @ru Получить информацию о нескольких альбомах.
+     * @en Get information about multiple albums.
+     * @param albumIds Массив ID альбомов.
+     * @returns Promise с массивом альбомов.
      */
-    getAlbums(albumIds: Array<AlbumId>): Promise<Array<Album>>;
+    getAlbums(albumIds: AlbumId[]): Promise<Album[]>;
     /**
-     * GET: /artists/[artist_id]
-     * @returns an artist
+     * @ru Получить информацию об исполнителе.
+     * @en Get artist information.
+     * @param artistId Идентификатор исполнителя.
+     * @returns Promise с полной информацией об исполнителе.
      */
     getArtist(artistId: ArtistId): Promise<FilledArtist>;
     /**
-     * GET: /artists
-     * @returns an artists
+     * @ru Получить информацию о нескольких исполнителях.
+     * @en Get information about multiple artists.
+     * @param artistIds Массив ID исполнителей.
+     * @returns Promise с массивом исполнителей.
      */
-    getArtists(artistIds: Array<ArtistId>): Promise<Array<Artist>>;
+    getArtists(artistIds: ArtistId[]): Promise<Artist[]>;
     /**
-     * GET: /artists/[artist_id]/tracks
-     * @returns Tracks by artist id
+     * @ru Получить треки исполнителя.
+     * @en Get artist tracks.
+     * @param artistId Идентификатор исполнителя.
+     * @param options Опции пагинации.
+     * @returns Promise с треками исполнителя.
      */
     getArtistTracks(artistId: ArtistId, options?: SearchOptions): Promise<ArtistTracksResponse>;
     /**
-     * GET: /users/{userId}/likes/tracks
-     * @param userId User id. Nullable.
-     * @returns Liked Tracks
+     * @ru Получить понравившиеся треки пользователя.
+     * @en Get user's liked tracks.
+     * @param userId ID пользователя (опционально).
+     * @returns Promise с понравившимися треками.
      */
-    getLikedTracks(userId?: number | string | null): Promise<DisOrLikedTracksResponse>;
+    getLikedTracks(userId?: UserId): Promise<DisOrLikedTracksResponse>;
     /**
-     * GET: /users/{userId}/dislikes/tracks
-     * @param userId User id. Nullable.
-     * @returns Disliked Tracks
+     * @ru Получить не понравившиеся треки пользователя.
+     * @en Get user's disliked tracks.
+     * @param userId ID пользователя (опционально).
+     * @returns Promise с не понравившимися треками.
      */
-    getDislikedTracks(userId?: number | string | null): Promise<DisOrLikedTracksResponse>;
+    getDislikedTracks(userId?: UserId): Promise<DisOrLikedTracksResponse>;
     /**
-     * GET: /rotor/stations/list
-     * @param language Language of station list
-     * @returns list of stations.
+     * @ru Получить список всех радиостанций.
+     * @en Get list of all radio stations.
+     * @param language Язык для списка станций.
+     * @returns Promise со списком радиостанций.
      */
     getAllStationsList(language?: Language): Promise<AllStationsListResponse>;
     /**
-     * GET: /rotor/stations/dashboard
-     * REQUIRES YOU TO BE LOGGED IN!
-     * @returns list of recomended stations.
+     * @ru Получить рекомендованные радиостанции.
+     * @en Get recommended radio stations.
+     * @returns Promise с рекомендованными радиостанциями.
      */
     getRecomendedStationsList(): Promise<RecomendedStationsListResponse>;
     /**
-     * GET: /rotor/station/{stationId}/tracks
-     * REQUIRES YOU TO BE LOGGED IN!
-     * @param stationId Id of station. Example: user:onyourwave
-     * @param queue Unique id of prev track.
-     * @returns tracks from station.
+     * @ru Получить треки радиостанции.
+     * @en Get radio station tracks.
+     * @param stationId ID радиостанции.
+     * @param queue ID предыдущего трека.
+     * @returns Promise с треками станции.
      */
     getStationTracks(stationId: string, queue?: string): Promise<StationTracksResponse>;
     /**
-     * GET: /rotor/station/{stationId}/info
-     * @param stationId Id of station. Example: user:onyourwave
-     * @returns info of the station.
+     * @ru Получить информацию о радиостанции.
+     * @en Get radio station information.
+     * @param stationId ID радиостанции.
+     * @returns Promise с информацией о станции.
      */
     getStationInfo(stationId: string): Promise<StationInfoResponse>;
     /**
-     * POST: /rotor/session/new
-     * @param seeds array of station ids e.g. ["user:onyourwave"]
-     * @param includeTracksInResponse whether to include tracks in response
+     * @ru Создать сессию Rotor.
+     * @en Create Rotor session.
+     * @param seeds Массив ID станций.
+     * @param includeTracksInResponse Включать треки в ответ.
+     * @returns Promise с созданной сессией.
      */
-    createRotorSession(seeds: Array<string>, includeTracksInResponse?: boolean): Promise<RotorSessionCreateResponse>;
+    createRotorSession(seeds: string[], includeTracksInResponse?: boolean): Promise<RotorSessionCreateResponse>;
     /**
-     * POST: /rotor/session/{sessionId}/tracks
-     * Retrieves the next batch of tracks within an existing session
-     * @param sessionId The ID of the active session (radioSessionId)
-     * @param options Object containing optional parameters such as queue (previous track ID), batchId, etc.
+     * @ru Получить треки сессии Rotor.
+     * @en Get Rotor session tracks.
+     * @param sessionId ID сессии.
+     * @param options Опции запроса.
+     * @returns Promise с треками сессии.
      */
     postRotorSessionTracks(sessionId: string, options?: {
         queue?: string[];
         batchId?: string;
     }): Promise<RotorSessionCreateResponse>;
     /**
-     * GET: /queues
-     * @returns queues without tracks
+     * @ru Получить список очередей воспроизведения.
+     * @en Get list of playback queues.
+     * @returns Promise со списком очередей.
      */
     getQueues(): Promise<QueuesResponse>;
     /**
-     * GET: /queues/{queueId}
-     * @param queueId Queue id.
-     * @returns queue data with(?) tracks.
+     * @ru Получить информацию об очереди воспроизведения.
+     * @en Get playback queue information.
+     * @param queueId ID очереди.
+     * @returns Promise с информацией об очереди.
      */
     getQueue(queueId: string): Promise<QueueResponse>;
-    /**
-     * Get Yandex server time offset with caching
-     * @param retries Number of retry attempts
-     * @param timeoutMs Timeout in milliseconds
-     * @returns Server time offset in seconds
-     */
     private getYandexServerOffset;
-    /**
-     * Generate signature for track download
-     */
     private generateTrackSignature;
 }
+export {};
