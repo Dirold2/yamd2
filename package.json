@@ -1,6 +1,6 @@
 {
-  "name": "ym-api-meowed-d2",
-  "version": "1.3.24",
+  "name": "yamd2",
+  "version": "1.3.25",
   "description": "A Node.js wrapper for the Yandex.Music API (Unofficial) http://music.yandex.ru",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,7 +15,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dirold2/ym-api-meowed-d2.git"
+    "url": "https://github.com/dirold2/yamd2.git"
   },
   "keywords": [
     "yandex",
