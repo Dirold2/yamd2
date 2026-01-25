@@ -707,6 +707,11 @@ export type DownloadInfo = {
   encrypted: boolean;
 };
 
+export interface DecryptedDownloadInfo extends DownloadInfo {
+  decryptedUrl?: string;
+  decryptedBuffer?: ArrayBuffer;
+}
+
 /**
  * @ru Ответ сервера с информацией о загрузке треков.
  * @en Server response with track download information.

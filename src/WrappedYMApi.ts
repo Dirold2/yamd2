@@ -21,9 +21,11 @@ import {
   type ArtistUrl,
   type FilledArtist,
   Transport,
-  type Codecs
+  type Codecs,
+  DecryptedDownloadInfo
 } from "./Types";
 import YMApi from "./YMApi";
+import { decryptData } from "./CryptoYM";
 
 // ============================================
 // Custom Errors
@@ -288,7 +290,7 @@ export default class WrappedYMApi {
   async getDownloadInfo(
     track: TrackId | TrackUrl,
     options: DownloadOptions = {}
-  ): Promise<DownloadInfo> {
+  ): Promise<DecryptedDownloadInfo> {
     const {
       codec = DownloadTrackCodec.MP3,
       quality = DownloadTrackQuality.Lossless,
@@ -306,19 +308,63 @@ export default class WrappedYMApi {
       transport
     );
 
-    const downloadUrl =
-      info?.downloadInfo?.url ?? info?.downloadInfo?.urls?.[0];
+    const downloadInfo = info.downloadInfo;
+
+    const downloadUrl = downloadInfo.url ?? downloadInfo.urls?.[0];
+
     if (!downloadUrl) throw new DownloadError(track, codec);
 
-    return {
+    const base: DecryptedDownloadInfo = {
       codec: codec as any,
-      bitrateInKbps: info.downloadInfo?.bitrate ?? 0,
+      bitrateInKbps: downloadInfo?.bitrate ?? 0,
       downloadInfoUrl: downloadUrl,
       direct: true,
-      quality: (info.downloadInfo?.quality ?? quality) as DownloadTrackQuality,
-      gain: info.downloadInfo?.gain ?? false,
+      quality: (downloadInfo?.quality ?? quality) as DownloadTrackQuality,
+      gain: downloadInfo?.gain ?? false,
       preview: false,
       encrypted
+    };
+
+    if (!downloadUrl.includes("/music-v2/crypt/")) {
+      return base;
+    }
+
+    // Если нужно дешифровать только FLAC / FLAC-MP4 — можно добавить проверку
+    // if (codec !== DownloadTrackCodec.FLAC && codec !== DownloadTrackCodec.FLACMP4) {
+    //   return base;
+    // }
+
+    const res = await fetch(downloadUrl);
+    const encryptedBytes = await res.arrayBuffer();
+
+    const keyHex = downloadInfo.key as string;
+    if (!keyHex) {
+      return base;
+    }
+
+    const decryptedBuffer = await decryptData({
+      key: keyHex,
+      data: encryptedBytes,
+      loadedBytes: 0
+    });
+
+    // Для браузера можно сразу сделать BlobURL
+    let decryptedUrl: string | undefined;
+    if (typeof URL !== "undefined" && typeof Blob !== "undefined") {
+      const mime =
+        codec === DownloadTrackCodec.FLAC ||
+        codec === DownloadTrackCodec.FLACMP4
+          ? "audio/flac"
+          : "audio/mp4";
+
+      const blob = new Blob([decryptedBuffer], { type: mime });
+      decryptedUrl = URL.createObjectURL(blob);
+    }
+
+    return {
+      ...base,
+      decryptedBuffer,
+      decryptedUrl
     };
   }
 
@@ -334,7 +380,14 @@ export default class WrappedYMApi {
     options: DownloadOptions = {}
   ): Promise<string> {
     const info = await this.getDownloadInfo(track, options);
-    return this.api.getTrackDirectLinkNew(info.downloadInfoUrl);
+    let link;
+    if (info.decryptedUrl) {
+      link = info.decryptedUrl;
+    } else {
+      link = info.downloadInfoUrl;
+    }
+
+    return this.api.getTrackDirectLinkNew(link);
   }
 
   // ============================================
