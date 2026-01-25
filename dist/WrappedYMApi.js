@@ -7,6 +7,7 @@ exports.DownloadError = exports.ExtractionError = exports.YMApiError = void 0;
 const hyperttp_1 = require("hyperttp");
 const Types_1 = require("./Types");
 const YMApi_1 = __importDefault(require("./YMApi"));
+const CryptoYM_1 = require("./CryptoYM");
 // ============================================
 // Custom Errors
 // ============================================
@@ -245,24 +246,58 @@ class WrappedYMApi {
      * @returns Промис с информацией о скачивании.
      */
     async getDownloadInfo(track, options = {}) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e;
         const { codec = Types_1.DownloadTrackCodec.MP3, quality = Types_1.DownloadTrackQuality.Lossless, forceRaw = false } = options;
         const config = CODEC_CONFIG[codec];
         const transport = forceRaw ? "raw" : config.transport;
         const encrypted = forceRaw ? false : config.encrypted;
         const info = await this.api.getTrackDownloadInfoNew(this.getTrackId(track), quality, config.codecs, transport);
-        const downloadUrl = (_b = (_a = info === null || info === void 0 ? void 0 : info.downloadInfo) === null || _a === void 0 ? void 0 : _a.url) !== null && _b !== void 0 ? _b : (_d = (_c = info === null || info === void 0 ? void 0 : info.downloadInfo) === null || _c === void 0 ? void 0 : _c.urls) === null || _d === void 0 ? void 0 : _d[0];
+        const downloadInfo = info.downloadInfo;
+        const downloadUrl = (_a = downloadInfo.url) !== null && _a !== void 0 ? _a : (_b = downloadInfo.urls) === null || _b === void 0 ? void 0 : _b[0];
         if (!downloadUrl)
             throw new DownloadError(track, codec);
-        return {
+        const base = {
             codec: codec,
-            bitrateInKbps: (_f = (_e = info.downloadInfo) === null || _e === void 0 ? void 0 : _e.bitrate) !== null && _f !== void 0 ? _f : 0,
+            bitrateInKbps: (_c = downloadInfo === null || downloadInfo === void 0 ? void 0 : downloadInfo.bitrate) !== null && _c !== void 0 ? _c : 0,
             downloadInfoUrl: downloadUrl,
             direct: true,
-            quality: ((_h = (_g = info.downloadInfo) === null || _g === void 0 ? void 0 : _g.quality) !== null && _h !== void 0 ? _h : quality),
-            gain: (_k = (_j = info.downloadInfo) === null || _j === void 0 ? void 0 : _j.gain) !== null && _k !== void 0 ? _k : false,
+            quality: ((_d = downloadInfo === null || downloadInfo === void 0 ? void 0 : downloadInfo.quality) !== null && _d !== void 0 ? _d : quality),
+            gain: (_e = downloadInfo === null || downloadInfo === void 0 ? void 0 : downloadInfo.gain) !== null && _e !== void 0 ? _e : false,
             preview: false,
             encrypted
+        };
+        if (!downloadUrl.includes("/music-v2/crypt/")) {
+            return base;
+        }
+        // Если нужно дешифровать только FLAC / FLAC-MP4 — можно добавить проверку
+        // if (codec !== DownloadTrackCodec.FLAC && codec !== DownloadTrackCodec.FLACMP4) {
+        //   return base;
+        // }
+        const res = await fetch(downloadUrl);
+        const encryptedBytes = await res.arrayBuffer();
+        const keyHex = downloadInfo.key;
+        if (!keyHex) {
+            return base;
+        }
+        const decryptedBuffer = await (0, CryptoYM_1.decryptData)({
+            key: keyHex,
+            data: encryptedBytes,
+            loadedBytes: 0
+        });
+        // Для браузера можно сразу сделать BlobURL
+        let decryptedUrl;
+        if (typeof URL !== "undefined" && typeof Blob !== "undefined") {
+            const mime = codec === Types_1.DownloadTrackCodec.FLAC ||
+                codec === Types_1.DownloadTrackCodec.FLACMP4
+                ? "audio/flac"
+                : "audio/mp4";
+            const blob = new Blob([decryptedBuffer], { type: mime });
+            decryptedUrl = URL.createObjectURL(blob);
+        }
+        return {
+            ...base,
+            decryptedBuffer,
+            decryptedUrl
         };
     }
     /**
@@ -274,7 +309,14 @@ class WrappedYMApi {
      */
     async getDownloadUrl(track, options = {}) {
         const info = await this.getDownloadInfo(track, options);
-        return this.api.getTrackDirectLinkNew(info.downloadInfoUrl);
+        let link;
+        if (info.decryptedUrl) {
+            link = info.decryptedUrl;
+        }
+        else {
+            link = info.downloadInfoUrl;
+        }
+        return this.api.getTrackDirectLinkNew(link);
     }
     // ============================================
     // FFmpeg & Best Quality Methods

@@ -1,4 +1,4 @@
-import { type TrackId, type TrackUrl, type DownloadInfo, type ApiInitConfig, type InitResponse, DownloadTrackQuality, DownloadTrackCodec, type PlaylistId, type PlaylistUrl, type UserId, type UserName, type Playlist, type Track, type AlbumUrl, type AlbumId, type Album, type AlbumWithTracks, type ArtistId, type ArtistUrl, type FilledArtist } from "./Types";
+import { type TrackId, type TrackUrl, type ApiInitConfig, type InitResponse, DownloadTrackQuality, DownloadTrackCodec, type PlaylistId, type PlaylistUrl, type UserId, type UserName, type Playlist, type Track, type AlbumUrl, type AlbumId, type Album, type AlbumWithTracks, type ArtistId, type ArtistUrl, type FilledArtist, DecryptedDownloadInfo } from "./Types";
 import YMApi from "./YMApi";
 export declare class YMApiError extends Error {
     readonly code?: string | undefined;
@@ -50,7 +50,7 @@ export default class WrappedYMApi {
      * @param options Опции скачивания (кодек, качество, etc.).
      * @returns Промис с информацией о скачивании.
      */
-    getDownloadInfo(track: TrackId | TrackUrl, options?: DownloadOptions): Promise<DownloadInfo>;
+    getDownloadInfo(track: TrackId | TrackUrl, options?: DownloadOptions): Promise<DecryptedDownloadInfo>;
     /**
      * @ru Получить прямую ссылку для скачивания трека.
      * @en Get direct download URL for track.
@@ -88,22 +88,22 @@ export default class WrappedYMApi {
      * @ru Получить информацию для скачивания MP3 трека.
      * @en Get MP3 track download information.
      */
-    getMp3DownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DownloadInfo>;
+    getMp3DownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DecryptedDownloadInfo>;
     /**
      * @ru Получить информацию для скачивания AAC трека.
      * @en Get AAC track download information.
      */
-    getAacDownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DownloadInfo>;
+    getAacDownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DecryptedDownloadInfo>;
     /**
      * @ru Получить информацию для скачивания FLAC трека.
      * @en Get FLAC track download information.
      */
-    getFlacDownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DownloadInfo>;
+    getFlacDownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DecryptedDownloadInfo>;
     /**
      * @ru Получить информацию для скачивания FLAC-MP4 трека.
      * @en Get FLAC-MP4 track download information.
      */
-    getFlacMP4DownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DownloadInfo>;
+    getFlacMP4DownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DecryptedDownloadInfo>;
     /**
      * @ru Получить URL для скачивания MP3 трека.
      * @en Get MP3 track download URL.

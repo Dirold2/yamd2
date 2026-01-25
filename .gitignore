@@ -1,5 +1,14 @@
-/*
-
 !/package.json
 !/LICENSE.md
 !/README.md
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+
+node_modules/
+
+# Custom
+bun.lock
