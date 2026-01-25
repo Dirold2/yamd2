@@ -11,25 +11,25 @@ This is a Node.js wrapper for the [Yandex.Music](http://music.yandex.ru/) API th
 ### NPM
 
 ```sh
-npm install ym-api-meowed
+npm install yamd2
 ```
 
 ### Yarn
 
 ```sh
-yarn add ym-api-meowed
+yarn add yamd2
 ```
 
 ### PNPM
 
 ```sh
-pnpm add ym-api-meowed
+pnpm add yamd2
 ```
 
 ### Bun
 
 ```sh
-bun add ym-api-meowed
+bun add yamd2
 ```
 
 ### From GitHub
