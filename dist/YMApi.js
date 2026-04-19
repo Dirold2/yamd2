@@ -1,37 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -39,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvalidUrlError = exports.DownloadInfoError = exports.TrackNotFoundError = exports.AuthError = exports.YMApiError = void 0;
 const index_js_1 = require("./PreparedRequest/index.js");
 const config_js_1 = __importDefault(require("./PreparedRequest/config.js"));
-const crypto = __importStar(require("crypto"));
+const crypto_1 = require("crypto");
 const timeout_js_1 = require("./utils/timeout.js");
 const index_js_2 = require("./Types/index.js");
 const ClckApi_js_1 = __importDefault(require("./ClckApi.js"));
@@ -96,7 +63,10 @@ const DEFAULT_HTTP_CONFIG = {
     maxRetries: 2,
     maxConcurrent: 20,
     cacheTTL: 60000,
-    userAgent: "YandexMusicDesktopAppWindows/5.13.2"
+    userAgent: "YandexMusicDesktopAppWindows/5.13.2",
+    enableCache: true,
+    enableRateLimit: true,
+    enableQueue: true
 };
 // ============================================
 // Main Class
@@ -537,13 +507,12 @@ class YMApi {
      */
     async getTrackDirectLink(trackDownloadUrl, short = false) {
         const request = (0, index_js_1.directLinkRequest)(trackDownloadUrl);
-        const rawResponse = await this.httpClient.get(request, "xml");
+        const rawResponse = await this.httpClient.get(request, "json");
         const downloadInfo = rawResponse["download-info"];
         if (!downloadInfo)
             throw new DownloadInfoError("Download info missing in response");
         const { host, path, ts, s } = downloadInfo;
-        const sign = crypto
-            .createHash("md5")
+        const sign = (0, crypto_1.createHash)("md5")
             .update(DIRECT_LINK_SALT + path.slice(1) + s)
             .digest("hex");
         const link = `https://${host}/get-mp3/${sign}/${ts}${path}`;
@@ -809,7 +778,7 @@ class YMApi {
     }
     generateTrackSignature(ts, trackId, quality, codecs, transports) {
         const signBase = `${ts}${trackId}${quality}${codecs}${transports}`.replace(/,/g, "");
-        return Buffer.from(crypto.createHmac("sha256", SIGNATURE_KEY).update(signBase).digest())
+        return Buffer.from((0, crypto_1.createHmac)("sha256", SIGNATURE_KEY).update(signBase).digest())
             .toString("base64")
             .replace(/=+$/, "");
     }

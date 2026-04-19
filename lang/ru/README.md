@@ -4,7 +4,7 @@
 
 ## язык
 
-[English](../../README.md), [__Русский__](./README.md)
+[English](../../README.md), [**Русский**](./README.md)
 
 ## Установка
 
@@ -186,16 +186,24 @@ const ffmpegUrl = await wrappedApi.getDownloadUrlForFFmpeg("123456");
 ```js
 // Все методы принимают как ID, так и URL
 const track = await wrappedApi.getTrack("123456");
-const trackFromUrl = await wrappedApi.getTrack("https://music.yandex.ru/track/123456");
+const trackFromUrl = await wrappedApi.getTrack(
+  "https://music.yandex.ru/track/123456"
+);
 
 const playlist = await wrappedApi.getPlaylist("123456");
-const playlistFromUrl = await wrappedApi.getPlaylist("https://music.yandex.ru/users/username/playlists/123456");
+const playlistFromUrl = await wrappedApi.getPlaylist(
+  "https://music.yandex.ru/users/username/playlists/123456"
+);
 
 const album = await wrappedApi.getAlbum("123456");
-const albumFromUrl = await wrappedApi.getAlbum("https://music.yandex.ru/album/123456");
+const albumFromUrl = await wrappedApi.getAlbum(
+  "https://music.yandex.ru/album/123456"
+);
 
 const artist = await wrappedApi.getArtist("123456");
-const artistFromUrl = await wrappedApi.getArtist("https://music.yandex.ru/artist/123456");
+const artistFromUrl = await wrappedApi.getArtist(
+  "https://music.yandex.ru/artist/123456"
+);
 ```
 
 ### Конкретные методы загрузки
@@ -247,7 +255,9 @@ try {
   if (error instanceof ExtractionError) {
     console.log(`Не удалось извлечь ID из URL: ${error.input}`);
   } else if (error instanceof DownloadError) {
-    console.log(`URL не найден для трека ${error.trackId} с кодеком ${error.codec}`);
+    console.log(
+      `URL не найден для трека ${error.trackId} с кодеком ${error.codec}`
+    );
   } else if (error instanceof YMApiError) {
     console.log(`Ошибка API: ${error.message}`);
   }
