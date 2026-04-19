@@ -2,7 +2,6 @@ import { HttpClientImproved, UrlExtractor } from "hyperttp";
 import {
   type TrackId,
   type TrackUrl,
-  type DownloadInfo,
   type ApiInitConfig,
   type InitResponse,
   DownloadTrackQuality,

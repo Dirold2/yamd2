@@ -4,7 +4,7 @@ import {
   directLinkRequest
 } from "./PreparedRequest/index.js";
 import fallbackConfig from "./PreparedRequest/config.js";
-import * as crypto from "crypto";
+import { createHash, createHmac } from "crypto";
 import { withRetry } from "./utils/timeout.js";
 import {
   type ApiConfig,
@@ -57,6 +57,8 @@ import {
 import shortenLink from "./ClckApi.js";
 import {
   HttpClientImproved,
+  HttpClientOptions,
+  Request,
   type RequestInterface,
   type ResponseType
 } from "hyperttp";
@@ -116,8 +118,11 @@ const DEFAULT_HTTP_CONFIG = {
   maxRetries: 2,
   maxConcurrent: 20,
   cacheTTL: 60_000,
-  userAgent: "YandexMusicDesktopAppWindows/5.13.2"
-} as const;
+  userAgent: "YandexMusicDesktopAppWindows/5.13.2",
+  enableCache: true,
+  enableRateLimit: true,
+  enableQueue: true
+} as HttpClientOptions;
 
 // ============================================
 // Types
@@ -190,7 +195,7 @@ export default class YMApi {
   }
 
   /** Creates an authenticated API request */
-  private createRequest(path: string): RequestInterface {
+  private createRequest(path: string): Request {
     return apiRequest().setPath(path).addHeaders(this.authHeader);
   }
 
@@ -749,15 +754,14 @@ export default class YMApi {
     short = false
   ): Promise<string> {
     const request = directLinkRequest(trackDownloadUrl);
-    const rawResponse = await this.httpClient.get<any>(request, "xml");
+    const rawResponse = await this.httpClient.get<any>(request, "json");
 
     const downloadInfo = rawResponse["download-info"];
     if (!downloadInfo)
       throw new DownloadInfoError("Download info missing in response");
 
     const { host, path, ts, s } = downloadInfo;
-    const sign = crypto
-      .createHash("md5")
+    const sign = createHash("md5")
       .update(DIRECT_LINK_SALT + path.slice(1) + s)
       .digest("hex");
 
@@ -1093,7 +1097,7 @@ export default class YMApi {
       ""
     );
     return Buffer.from(
-      crypto.createHmac("sha256", SIGNATURE_KEY).update(signBase).digest()
+      createHmac("sha256", SIGNATURE_KEY).update(signBase).digest()
     )
       .toString("base64")
       .replace(/=+$/, "");

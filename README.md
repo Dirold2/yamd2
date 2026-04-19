@@ -4,7 +4,7 @@ This is a Node.js wrapper for the [Yandex.Music](http://music.yandex.ru/) API th
 
 ## Localization
 
-[__English__](./README.md), [Русский](./lang/ru/README.md)
+[**English**](./README.md), [Русский](./lang/ru/README.md)
 
 ## Installation
 
@@ -213,7 +213,9 @@ try {
   if (error instanceof ExtractionError) {
     console.log(`Failed to extract ID from URL: ${error.input}`);
   } else if (error instanceof DownloadError) {
-    console.log(`URL not found for track ${error.trackId} with codec ${error.codec}`);
+    console.log(
+      `URL not found for track ${error.trackId} with codec ${error.codec}`
+    );
   }
 }
 ```
