@@ -215,9 +215,9 @@ export default class YMApi {
      * @param options Опции позиции.
      * @returns Promise с обновленным плейлистом.
      */
-    addTracksToPlaylist(playlistId: number, tracks: Array<{
-        id: number;
-        albumId: number;
+    addTracksToPlaylist(playlistId: number | string, tracks: Array<{
+        id: number | string;
+        albumId: number | string;
     }>, revision: number, options?: {
         at?: number;
     }): Promise<Playlist>;

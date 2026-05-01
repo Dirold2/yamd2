@@ -383,10 +383,21 @@ class YMApi {
      */
     addTracksToPlaylist(playlistId, tracks, revision, options = {}) {
         var _a;
+        const formattedTracks = tracks.map(t => ({
+            id: String(t.id),
+            albumId: String(t.albumId)
+        }));
+        const diff = JSON.stringify([
+            {
+                op: "insert",
+                at: (_a = options.at) !== null && _a !== void 0 ? _a : 0,
+                tracks: formattedTracks
+            }
+        ]);
         return this.post(this.createRequest(`/users/${this.user.uid}/playlists/${playlistId}/change-relative`)
             .addHeaders({ "content-type": "application/x-www-form-urlencoded" })
             .setBodyData({
-            diff: JSON.stringify([{ op: "insert", at: (_a = options.at) !== null && _a !== void 0 ? _a : 0, tracks }]),
+            diff: diff,
             revision: String(revision)
         }));
     }
