@@ -572,18 +572,31 @@ export default class YMApi {
    * @returns Promise с обновленным плейлистом.
    */
   addTracksToPlaylist(
-    playlistId: number,
-    tracks: Array<{ id: number; albumId: number }>,
+    playlistId: number | string,
+    tracks: Array<{ id: number | string; albumId: number | string }>,
     revision: number,
     options: { at?: number } = {}
   ): Promise<Playlist> {
+    const formattedTracks = tracks.map(t => ({
+      id: String(t.id),
+      albumId: String(t.albumId)
+    }));
+
+    const diff = JSON.stringify([
+      {
+        op: "insert",
+        at: options.at ?? 0,
+        tracks: formattedTracks
+      }
+    ]);
+
     return this.post(
       this.createRequest(
         `/users/${this.user.uid}/playlists/${playlistId}/change-relative`
       )
         .addHeaders({ "content-type": "application/x-www-form-urlencoded" })
         .setBodyData({
-          diff: JSON.stringify([{ op: "insert", at: options.at ?? 0, tracks }]),
+          diff: diff,
           revision: String(revision)
         })
     );
