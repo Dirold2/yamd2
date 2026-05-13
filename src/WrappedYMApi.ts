@@ -146,7 +146,7 @@ export default class WrappedYMApi {
   private readonly urlExtractor: UrlExtractor;
 
   constructor(private readonly api: YMApi = new YMApi()) {
-    this.client = new HttpClientImproved({ maxRetries: 3, cacheTTL: 300_000 });
+    this.client = new HttpClientImproved({ retry:{ maxRetries: 3 }, cache: { ttl: 300_000 } });
     this.urlExtractor = new UrlExtractor();
     this.setupUrlExtractor();
   }

@@ -114,14 +114,24 @@ const DIRECT_LINK_SALT = "XGRlBW9FXlekgbPrRHuSiA";
 const SERVER_OFFSET_CACHE_TTL = 300_000;
 
 const DEFAULT_HTTP_CONFIG = {
-  timeout: 10_000,
-  maxRetries: 2,
-  maxConcurrent: 20,
-  cacheTTL: 60_000,
-  userAgent: "YandexMusicDesktopAppWindows/5.13.2",
-  enableCache: true,
-  enableRateLimit: true,
-  enableQueue: true
+  network: {
+    timeout: 10000,
+    maxConcurrent: 20,
+    userAgent: "YandexMusicDesktopAppWindows/5.13.2"
+  },
+  retry: {
+    maxRetries: 2
+  },
+  cache: {
+    enabled: true,
+    ttl: 60000
+  },
+  rateLimit: {
+    enabled: true
+  },
+  queue: {
+    enabled: true
+  }
 } as HttpClientOptions;
 
 // ============================================

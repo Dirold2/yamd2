@@ -6,6 +6,6 @@
     "outDir": "./dist",
     "declaration": true,
     "strict": true,
-    "rootDir": ".."
+    "rootDir": "src"
   }
 }
