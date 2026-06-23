@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["timeout.js"],
+  "sourcesContent": ["export async function withTimeout(promise, timeoutMs, errorMessage = \"Request timed out\") {\n    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), timeoutMs));\n    return Promise.race([promise, timeoutPromise]);\n}\nexport async function withRetry(fn, retries, onError) {\n    for (let i = 0; i < retries; i++) {\n        try {\n            return await fn();\n        }\n        catch (error) {\n            if (onError)\n                onError(error, i + 1);\n            if (i === retries - 1)\n                throw error;\n        }\n    }\n    throw new Error(\"Retry failed\");\n}\n"],
+  "mappings": "aAAA,sBAAsB,YAAYA,EAASC,EAAWC,EAAe,oBAAqB,CACtF,MAAMC,EAAiB,IAAI,QAAQ,CAACC,EAAGC,IAAW,WAAW,IAAMA,EAAO,IAAI,MAAMH,CAAY,CAAC,EAAGD,CAAS,CAAC,EAC9G,OAAO,QAAQ,KAAK,CAACD,EAASG,CAAc,CAAC,CACjD,CACA,sBAAsB,UAAUG,EAAIC,EAASC,EAAS,CAClD,QAASC,EAAI,EAAGA,EAAIF,EAASE,IACzB,GAAI,CACA,OAAO,MAAMH,EAAG,CACpB,OACOI,EAAO,CAGV,GAFIF,GACAA,EAAQE,EAAOD,EAAI,CAAC,EACpBA,IAAMF,EAAU,EAChB,MAAMG,CACd,CAEJ,MAAM,IAAI,MAAM,cAAc,CAClC",
+  "names": ["promise", "timeoutMs", "errorMessage", "timeoutPromise", "_", "reject", "fn", "retries", "onError", "i", "error"]
+}

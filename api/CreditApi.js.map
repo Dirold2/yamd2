@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["CreditApi.js"],
+  "sourcesContent": ["export class CreditApi {\n    constructor(ctx) {\n        this.ctx = ctx;\n    }\n    /**\n     * GET: /tracks/{trackId}/credits\n     * @ru \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0430\u0432\u0442\u043E\u0440\u043E\u0432 \u0438 \u0438\u0441\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u0435\u0439 \u0442\u0440\u0435\u043A\u0430.\n     * @en Get track credits (authors, performers).\n     * @param trackId  Track ID.\n     * @returns Promise with credits.\n     */\n    getTrackCredits(trackId) {\n        return this.ctx.get(this.ctx.createRequest(`/tracks/${trackId}/credits`));\n    }\n    /**\n     * GET: /clips/{clipId}/credits\n     * @ru \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0430\u0432\u0442\u043E\u0440\u043E\u0432 \u0438 \u0438\u0441\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u0435\u0439 \u043A\u043B\u0438\u043F\u0430.\n     * @en Get clip credits (authors, performers).\n     * @param clipId  Clip ID.\n     * @returns Promise with credits.\n     */\n    getClipCredits(clipId) {\n        return this.ctx.get(this.ctx.createRequest(`/clips/${clipId}/credits`));\n    }\n}\n"],
+  "mappings": "aAAO,aAAM,SAAU,CACnB,YAAYA,EAAK,CACb,KAAK,IAAMA,CACf,CAQA,gBAAgBC,EAAS,CACrB,OAAO,KAAK,IAAI,IAAI,KAAK,IAAI,cAAc,WAAWA,CAAO,UAAU,CAAC,CAC5E,CAQA,eAAeC,EAAQ,CACnB,OAAO,KAAK,IAAI,IAAI,KAAK,IAAI,cAAc,UAAUA,CAAM,UAAU,CAAC,CAC1E,CACJ",
+  "names": ["ctx", "trackId", "clipId"]
+}

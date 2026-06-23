@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["PinApi.js"],
+  "sourcesContent": ["export class PinApi {\n    constructor(ctx) {\n        this.ctx = ctx;\n    }\n    /**\n     * GET: /pins\n     * @ru \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0437\u0430\u043A\u0440\u0435\u043F\u043B\u0451\u043D\u043D\u044B\u0435 \u0441\u0443\u0449\u043D\u043E\u0441\u0442\u0438 \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F.\n     * @en Get user pinned entities.\n     * @returns Promise with pinned items.\n     */\n    getPins() {\n        return this.ctx.get(this.ctx.createRequest(\"/pins\"));\n    }\n}\n"],
+  "mappings": "aAAO,aAAM,MAAO,CAChB,YAAYA,EAAK,CACb,KAAK,IAAMA,CACf,CAOA,SAAU,CACN,OAAO,KAAK,IAAI,IAAI,KAAK,IAAI,cAAc,OAAO,CAAC,CACvD,CACJ",
+  "names": ["ctx"]
+}

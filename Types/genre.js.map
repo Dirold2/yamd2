@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["genre.js"],
+  "sourcesContent": ["export {};\n"],
+  "mappings": "aAAA",
+  "names": []
+}

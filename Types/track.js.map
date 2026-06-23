@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["track.js"],
+  "sourcesContent": ["export var DownloadTrackQuality;\n(function (DownloadTrackQuality) {\n    DownloadTrackQuality[\"Lossless\"] = \"lossless\";\n    DownloadTrackQuality[\"High\"] = \"high\";\n    DownloadTrackQuality[\"Low\"] = \"low\";\n})(DownloadTrackQuality || (DownloadTrackQuality = {}));\nexport var DownloadTrackCodec;\n(function (DownloadTrackCodec) {\n    DownloadTrackCodec[\"FLAC\"] = \"flac\";\n    DownloadTrackCodec[\"FLACMP4\"] = \"flac-mp4\";\n    DownloadTrackCodec[\"AAC\"] = \"aac\";\n    DownloadTrackCodec[\"AACMP4\"] = \"aac-mp4\";\n    DownloadTrackCodec[\"HEACC\"] = \"he-aac\";\n    DownloadTrackCodec[\"HEACCMP4\"] = \"he-aac-mp4\";\n    DownloadTrackCodec[\"MP3\"] = \"mp3\";\n})(DownloadTrackCodec || (DownloadTrackCodec = {}));\n"],
+  "mappings": "aAAO,WAAI,sBACV,SAAUA,EAAsB,CAC7BA,EAAqB,SAAc,WACnCA,EAAqB,KAAU,OAC/BA,EAAqB,IAAS,KAClC,GAAG,uBAAyB,qBAAuB,CAAC,EAAE,EAC/C,WAAI,oBACV,SAAUC,EAAoB,CAC3BA,EAAmB,KAAU,OAC7BA,EAAmB,QAAa,WAChCA,EAAmB,IAAS,MAC5BA,EAAmB,OAAY,UAC/BA,EAAmB,MAAW,SAC9BA,EAAmB,SAAc,aACjCA,EAAmB,IAAS,KAChC,GAAG,qBAAuB,mBAAqB,CAAC,EAAE",
+  "names": ["DownloadTrackQuality", "DownloadTrackCodec"]
+}

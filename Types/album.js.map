@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["album.js"],
+  "sourcesContent": ["export {};\n"],
+  "mappings": "aAAA",
+  "names": []
+}

@@ -1,0 +1,37 @@
+import type { TrackId, TrackUrl, ApiInitConfig, InitResponse, DownloadTrackQuality, DecryptedDownloadInfo, PlaylistId, PlaylistUrl, UserId, UserName, Playlist, Track, AlbumUrl, AlbumId, Album, AlbumWithTracks, ArtistId, ArtistUrl, FilledArtist, DownloadOptions } from "./Types/index.js";
+import YMApi from "./YMApi.js";
+export { YMApiError, ExtractionError, DownloadError } from "./Types/index.js";
+export default class WrappedYMApi {
+    private readonly api;
+    private readonly urlExtractor;
+    private readonly downloadService;
+    constructor(api?: YMApi);
+    private setupUrlExtractor;
+    init(config: ApiInitConfig): Promise<InitResponse>;
+    getApi(): YMApi;
+    private extractNumericId;
+    private getTrackId;
+    private getAlbumId;
+    private getArtistId;
+    private getPlaylistId;
+    getDownloadInfo(track: TrackId | TrackUrl, options?: DownloadOptions): Promise<DecryptedDownloadInfo>;
+    getDownloadUrl(track: TrackId | TrackUrl, options?: DownloadOptions): Promise<string>;
+    getDownloadUrlForFFmpeg(track: TrackId | TrackUrl, quality?: DownloadTrackQuality): Promise<string | null>;
+    getBestDownloadUrl(track: TrackId | TrackUrl, quality?: DownloadTrackQuality): Promise<string | null>;
+    isEncryptedUrl(url: string): boolean;
+    private createDownloadInfoGetter;
+    private createDownloadUrlGetter;
+    getMp3DownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DecryptedDownloadInfo>;
+    getAacDownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DecryptedDownloadInfo>;
+    getFlacDownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DecryptedDownloadInfo>;
+    getFlacMP4DownloadInfo: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<DecryptedDownloadInfo>;
+    getMp3DownloadUrl: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<string>;
+    getAacDownloadUrl: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<string>;
+    getFlacDownloadUrl: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<string>;
+    getFlacMP4DownloadUrl: (track: TrackId | TrackUrl, quality?: DownloadTrackQuality) => Promise<string>;
+    getPlaylist(playlist: PlaylistId | PlaylistUrl, user?: UserId | UserName): Promise<Playlist>;
+    getTrack(track: TrackId | TrackUrl): Promise<Track>;
+    getAlbum(album: AlbumId | AlbumUrl, withTracks?: boolean): Promise<Album | AlbumWithTracks>;
+    getAlbumWithTracks(album: AlbumId | AlbumUrl): Promise<AlbumWithTracks>;
+    getArtist(artist: ArtistId | ArtistUrl): Promise<FilledArtist>;
+}

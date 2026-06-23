@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["ClckApi.js"],
+  "sourcesContent": ["import { HyperClient } from \"hyperttp\";\nimport { clckApiRequest } from \"./PreparedRequest/index.js\";\nconst defaultClient = new HyperClient();\n/**\n * GET: clck.ru/--\n * @param URL Url to shorten\n * @param client Optional custom HTTP client\n * @returns Promise<string> - shortened link\n */\nexport default function shortenLink(URL, client = defaultClient) {\n    const request = clckApiRequest().setPath(\"/--\").addQuery({ url: URL });\n    return client.get(request);\n}\n"],
+  "mappings": "aAAA,OAAS,eAAAA,MAAmB,WAC5B,OAAS,kBAAAC,MAAsB,6BAC/B,MAAMC,EAAgB,IAAIF,EAO1B,wBAAwBG,EAAYC,EAAKC,EAASH,EAAe,CAC7D,MAAMI,EAAUL,EAAe,EAAE,QAAQ,KAAK,EAAE,SAAS,CAAE,IAAKG,CAAI,CAAC,EACrE,OAAOC,EAAO,IAAIC,CAAO,CAC7B",
+  "names": ["HyperClient", "clckApiRequest", "defaultClient", "shortenLink", "URL", "client", "request"]
+}

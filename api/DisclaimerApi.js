@@ -1,0 +1,2 @@
+"use strict";export class DisclaimerApi{constructor(t){this.ctx=t}getTrackDisclaimer(t){return this.ctx.get(this.ctx.createRequest(`/tracks/${t}/disclaimer`))}getAlbumDisclaimer(t){return this.ctx.get(this.ctx.createRequest(`/albums/${t}/disclaimer`))}getArtistDisclaimer(t){return this.ctx.get(this.ctx.createRequest(`/artists/${t}/disclaimer`))}getClipDisclaimer(t){return this.ctx.get(this.ctx.createRequest(`/clips/${t}/disclaimer`))}}
+//# sourceMappingURL=DisclaimerApi.js.map

@@ -1,0 +1,2 @@
+"use strict";export var DownloadTrackQuality;(function(s){s.Lossless="lossless",s.High="high",s.Low="low"})(DownloadTrackQuality||(DownloadTrackQuality={}));export var DownloadTrackCodec;(function(s){s.FLAC="flac",s.FLACMP4="flac-mp4",s.AAC="aac",s.AACMP4="aac-mp4",s.HEACC="he-aac",s.HEACCMP4="he-aac-mp4",s.MP3="mp3"})(DownloadTrackCodec||(DownloadTrackCodec={}));
+//# sourceMappingURL=track.js.map

@@ -1,0 +1,30 @@
+declare const _default: {
+    api: {
+        host: string;
+        port: number;
+        scheme: string;
+    };
+    authApi: {
+        host: string;
+        port: number;
+        scheme: string;
+    };
+    clckApi: {
+        host: string;
+        port: number;
+        scheme: string;
+    };
+    oauth: {
+        CLIENT_ID: string;
+        CLIENT_SECRET: string;
+    };
+    fake_device: {
+        DEVICE_ID: string;
+        UUID: string;
+        PACKAGE_NAME: string;
+    };
+    client: {
+        USER_AGENT: string;
+    };
+};
+export default _default;

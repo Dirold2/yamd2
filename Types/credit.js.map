@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["credit.js"],
+  "sourcesContent": ["export {};\n"],
+  "mappings": "aAAA",
+  "names": []
+}

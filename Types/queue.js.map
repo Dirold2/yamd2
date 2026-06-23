@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["queue.js"],
+  "sourcesContent": ["export {};\n"],
+  "mappings": "aAAA",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["MusicHistoryApi.js"],
+  "sourcesContent": ["export class MusicHistoryApi {\n    constructor(ctx) {\n        this.ctx = ctx;\n    }\n    /**\n     * GET: /music-history\n     * @ru \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043F\u0440\u043E\u0441\u043B\u0443\u0448\u0438\u0432\u0430\u043D\u0438\u0439.\n     * @en Get listening history.\n     * @param page  Page number.\n     * @param pageSize  Page size.\n     * @returns Promise with history.\n     */\n    getMusicHistory(page = 0, pageSize = 50) {\n        return this.ctx.getRaw(this.ctx.createRequest(\"/music-history\").addQuery({\n            page: String(page),\n            pageSize: String(pageSize),\n        }));\n    }\n}\n"],
+  "mappings": "aAAO,aAAM,eAAgB,CACzB,YAAYA,EAAK,CACb,KAAK,IAAMA,CACf,CASA,gBAAgBC,EAAO,EAAGC,EAAW,GAAI,CACrC,OAAO,KAAK,IAAI,OAAO,KAAK,IAAI,cAAc,gBAAgB,EAAE,SAAS,CACrE,KAAM,OAAOD,CAAI,EACjB,SAAU,OAAOC,CAAQ,CAC7B,CAAC,CAAC,CACN,CACJ",
+  "names": ["ctx", "page", "pageSize"]
+}

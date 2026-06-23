@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["apiRequest.js"],
+  "sourcesContent": ["import { Request } from \"hyperttp\";\nimport config from \"./config.js\";\nexport default function apiRequest() {\n    return new Request(config.api);\n}\n"],
+  "mappings": "aAAA,OAAS,WAAAA,MAAe,WACxB,OAAOC,MAAY,cACnB,wBAAwBC,GAAa,CACjC,OAAO,IAAIF,EAAQC,EAAO,GAAG,CACjC",
+  "names": ["Request", "config", "apiRequest"]
+}

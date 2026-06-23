@@ -1,0 +1,2 @@
+"use strict";export class LandingApi{constructor(t){this.ctx=t}getChart(t){return this.ctx.get(this.ctx.createRequest(`/landing3/chart/${t}`))}getNewPlaylists(){return this.ctx.get(this.ctx.createRequest("/landing3/new-playlists"))}getNewReleases(){return this.ctx.get(this.ctx.createRequest("/landing3/new-releases"))}getPodcasts(){return this.ctx.get(this.ctx.createRequest("/landing3/podcasts"))}getGenres(){return this.ctx.get(this.ctx.createRequest("/genres"))}}
+//# sourceMappingURL=LandingApi.js.map

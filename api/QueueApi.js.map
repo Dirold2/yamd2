@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["QueueApi.js"],
+  "sourcesContent": ["export class QueueApi {\n    constructor(ctx) {\n        this.ctx = ctx;\n    }\n    /**\n     * GET: /queues\n     * @ru \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0432\u0441\u0435 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u0432\u043E\u0441\u043F\u0440\u043E\u0438\u0437\u0432\u0435\u0434\u0435\u043D\u0438\u044F.\n     * @en Get all playback queues.\n     * @returns Promise with queues.\n     */\n    getQueues() {\n        return this.ctx.get(this.ctx.createRequest(\"/queues\").addHeaders(this.ctx.deviceHeader));\n    }\n    /**\n     * GET: /queues/{queueId}\n     * @ru \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043E\u0447\u0435\u0440\u0435\u0434\u044C \u0432\u043E\u0441\u043F\u0440\u043E\u0438\u0437\u0432\u0435\u0434\u0435\u043D\u0438\u044F \u043F\u043E ID.\n     * @en Get a playback queue by ID.\n     * @param queueId  Queue ID.\n     * @returns Promise with queue.\n     */\n    getQueue(queueId) {\n        return this.ctx.get(this.ctx.createRequest(`/queues/${queueId}`));\n    }\n}\n"],
+  "mappings": "aAAO,aAAM,QAAS,CAClB,YAAYA,EAAK,CACb,KAAK,IAAMA,CACf,CAOA,WAAY,CACR,OAAO,KAAK,IAAI,IAAI,KAAK,IAAI,cAAc,SAAS,EAAE,WAAW,KAAK,IAAI,YAAY,CAAC,CAC3F,CAQA,SAASC,EAAS,CACd,OAAO,KAAK,IAAI,IAAI,KAAK,IAAI,cAAc,WAAWA,CAAO,EAAE,CAAC,CACpE,CACJ",
+  "names": ["ctx", "queueId"]
+}

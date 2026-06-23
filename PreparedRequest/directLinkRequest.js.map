@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["directLinkRequest.js"],
+  "sourcesContent": ["import { Request } from \"hyperttp\";\nimport { URL } from \"node:url\";\nexport default function directLinkRequest(url) {\n    const parsed = new URL(url);\n    return new Request({\n        scheme: parsed.protocol.slice(0, -1),\n        host: parsed.hostname,\n        port: parsed.port ? Number(parsed.port) : parsed.protocol === \"https:\" ? 443 : 80,\n        path: parsed.pathname,\n        query: Object.fromEntries(parsed.searchParams.entries()),\n        headers: {},\n        bodyData: undefined,\n    });\n}\n"],
+  "mappings": "aAAA,OAAS,WAAAA,MAAe,WACxB,OAAS,OAAAC,MAAW,WACpB,wBAAwBC,EAAkBC,EAAK,CAC3C,MAAMC,EAAS,IAAIH,EAAIE,CAAG,EAC1B,OAAO,IAAIH,EAAQ,CACf,OAAQI,EAAO,SAAS,MAAM,EAAG,EAAE,EACnC,KAAMA,EAAO,SACb,KAAMA,EAAO,KAAO,OAAOA,EAAO,IAAI,EAAIA,EAAO,WAAa,SAAW,IAAM,GAC/E,KAAMA,EAAO,SACb,MAAO,OAAO,YAAYA,EAAO,aAAa,QAAQ,CAAC,EACvD,QAAS,CAAC,EACV,SAAU,MACd,CAAC,CACL",
+  "names": ["Request", "URL", "directLinkRequest", "url", "parsed"]
+}

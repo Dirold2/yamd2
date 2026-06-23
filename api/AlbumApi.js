@@ -1,0 +1,2 @@
+"use strict";export class AlbumApi{constructor(t){this.ctx=t}getAlbum(t,e=!1){const s=e?`/albums/${t}/with-tracks`:`/albums/${t}`;return this.ctx.get(this.ctx.createRequest(s))}getAlbumWithTracks(t){return this.getAlbum(t,!0)}getAlbums(t){return this.ctx.post(this.ctx.createRequest("/albums").setBodyData({albumIds:t.join()}))}getAlbumSimilarEntities(t){return this.ctx.get(this.ctx.createRequest(`/albums/${t}/similar-entities`))}getAlbumTrailer(t){return this.ctx.get(this.ctx.createRequest(`/albums/${t}/trailer`))}}
+//# sourceMappingURL=AlbumApi.js.map
