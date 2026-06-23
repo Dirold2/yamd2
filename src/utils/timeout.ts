@@ -1,10 +1,10 @@
 export async function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  errorMessage = "Request timed out"
+  errorMessage = "Request timed out",
 ): Promise<T> {
   const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+    setTimeout(() => reject(new Error(errorMessage)), timeoutMs),
   );
   return Promise.race([promise, timeoutPromise]);
 }
@@ -12,7 +12,7 @@ export async function withTimeout<T>(
 export async function withRetry<T>(
   fn: () => Promise<T>,
   retries: number,
-  onError?: (error: unknown, attempt: number) => void
+  onError?: (error: unknown, attempt: number) => void,
 ): Promise<T> {
   for (let i = 0; i < retries; i++) {
     try {

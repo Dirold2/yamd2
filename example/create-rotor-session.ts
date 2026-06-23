@@ -12,7 +12,9 @@ async function main() {
   await api.init({ access_token, uid });
 
   const trackId = 124413086; // ID трека
-  const sess = await api.createRotorSession([`track:${trackId}`], true);
+  const sess = await api.radio.createRotorSession([`track:${trackId}`], true);
+
+  console.log(sess);
 
   // Проверяем реальные поля
   if (

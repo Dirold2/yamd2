@@ -7,7 +7,7 @@ const api = new YMApi();
     await api.init(config.user);
     console.log(`Logged in as: ${config.user.uid}`);
 
-    const playlist = await api.createPlaylist("Test Playlist", {
+    const playlist = await api.playlists.createPlaylist("Test Playlist", {
       visibility: "public"
     });
     console.log(`Created playlist: ${playlist.title} (Kind: ${playlist.kind}, Rev: ${playlist.revision})`);
@@ -18,7 +18,7 @@ const api = new YMApi();
     ];
     
     console.log("Adding tracks...");
-    const updatedPlaylist = await api.addTracksToPlaylist(
+    const updatedPlaylist = await api.playlists.addTracksToPlaylist(
       playlist.kind,
       tracks,
       playlist.revision!
@@ -31,7 +31,7 @@ const api = new YMApi();
     console.log("Verifying tracks existence...");
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const fetchedPlaylists = await api.getPlaylists([playlist.kind], undefined, {
+    const fetchedPlaylists = await api.playlists.getPlaylists([playlist.kind], undefined, {
       "rich-tracks": true
     });
     
@@ -45,14 +45,28 @@ const api = new YMApi();
       throw new Error(`Track mismatch! Expected ${tracks.length}, got ${actualTrackCount}`);
     }
 
+    // New methods
+    const recommendations = await api.playlists.getPlaylistRecommendations(playlist.kind);
+    console.log(`Recommendations: ${recommendations.recommendations?.length ?? 0} tracks`);
+
+    const userSettings = await api.playlists.getUserSettings();
+    if (userSettings) {
+      console.log(`User settings loaded: ${Object.keys(userSettings).length} keys`);
+    } else {
+      console.log("User settings: not available");
+    }
+
+    const kinds = await api.playlists.getPlaylistKinds();
+    console.log(`Playlist kinds: ${kinds.length} playlists`);
+
     console.log("Cleaning up...");
-    await api.removeTracksFromPlaylist(
+    await api.playlists.removeTracksFromPlaylist(
       playlist.kind,
       tracks,
       target.revision!
     );
     
-    await api.removePlaylist(playlist.kind);
+    await api.playlists.removePlaylist(playlist.kind);
 
     console.log("✔ Playlist smoke test passed");
     process.exitCode = 0;

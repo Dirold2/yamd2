@@ -9,11 +9,7 @@ export default function directLinkRequest(url: string) {
 
     host: parsed.hostname,
 
-    port: parsed.port
-      ? Number(parsed.port)
-      : parsed.protocol === "https:"
-        ? 443
-        : 80,
+    port: parsed.port ? Number(parsed.port) : parsed.protocol === "https:" ? 443 : 80,
 
     path: parsed.pathname,
 

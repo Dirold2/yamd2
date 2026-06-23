@@ -20,7 +20,7 @@ const wrappedApi = new WrappedYMApi();
       urls.map((url) => wrappedApi.getTrack(url))
     );
     const [apiOld, apiNew] = await Promise.all(
-      ids.map((id) => api.getTrack(id))
+      ids.map((id) => api.tracks.getTrack(id))
     );
 
     // Проверка наличия артистов

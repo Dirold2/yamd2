@@ -41,14 +41,17 @@ npm install github:Dirold2/yamd2#__dist__
 ## Использование
 
 ```js
-import { YMApi } from "yamd2";
+import { YMApi, WrappedYMApi, Types } from "yamd2";
+
 const api = new YMApi();
 
 (async () => {
   try {
     await api.init({ access_token: "EXAMPLE_TOKEN", uid: 0 });
-    const result = await api.searchArtists("gorillaz");
-    console.log({ result });
+    const result = await api.search.query("gorillaz", { type: "artist" });
+    const artist = result.artists?.results?.[0];
+    const tracks = await api.artists.getArtistTracks(artist.id);
+    console.log(tracks);
   } catch (e) {
     console.log(`api error ${e.message}`);
   }
@@ -59,71 +62,87 @@ const api = new YMApi();
 
 ## Доступные методы
 
-Эта библиотека предоставляет следующие методы:
+Методы сгруппированы по доменам — полям на экземпляре `YMApi`:
 
-### Простой API
+### api.auth
 
-#### Пользователи
+- `init(config)` — Аутентификация и инициализация
 
-- getAccountStatus
-- getFeed
+### api.account
 
-#### Музыка
+- `getAccountStatus()` — Статус аккаунта
+- `getFeed()` — Лента пользователя
 
-- getChart
-- getNewReleases
-- getPodcasts
-- getGenres
-- search
-- searchArtists
-- searchTracks
-- searchAlbums
-- searchAll
+### api.landing
 
-#### Плейлисты
+- `getChart(chartType?)` — Чарт
+- `getNewReleases()` — Новые альбомы
+- `getNewPlaylists()` — Новые плейлисты
+- `getPodcasts()` — Подкасты
+- `getGenres()` — Список жанров
 
-- getNewPlaylists
-- getPlaylist
-- getPlaylists
-- getUserPlaylists
-- createPlaylist
-- removePlaylist
-- renamePlaylist
-- addTracksToPlaylist
-- removeTracksFromPlaylist
+### api.search
 
-#### Треки
+- `query(q, options?)` — Поиск по всем или конкретному типу
+- `artists(q, options?)` — Поиск исполнителей
+- `tracks(q, options?)` — Поиск треков
+- `albums(q, options?)` — Поиск альбомов
+- `all(q, options?)` — Поиск по всем типам
 
-- getTrack
-- getArtistTracks
-- getSingleTrack
-- getTrackSupplement
-- getTrackDownloadInfo
-- getTrackDownloadInfoNew
-- getTrackDirectLink
-- getTrackDirectLinkNew
-- getTrackShareLink
-- getSimilarTracks
-- getDislikedTracks
-- getLikedTracks
+### api.tracks
 
-#### Альбомы
+- `getTrack(trackId)` — Получить трек(и)
+- `getSingleTrack(trackId)` — Получить один трек
+- `getTrackSupplement(trackId)` — Доп. информация
+- `getTrackDownloadInfo(trackId, quality?, canUseStreaming?)` — Информация о загрузке
+- `getTrackDownloadInfoNew(trackId, quality?, codecs?, transport?)` — Новый endpoint
+- `getTrackDirectLink(downloadUrl, short?)` — Прямая ссылка
+- `getTrackDirectLinkNew(trackUrl)` — Прямая ссылка (новый формат)
+- `getTrackShareLink(track)` — Ссылка для шаринга
+- `getSimilarTracks(trackId)` — Похожие треки
+- `getTrackSupplement(trackId)` — Доп. информация о треке
 
-- getAlbums
-- getAlbum
-- getAlbumWithTracks
+### api.albums
 
-#### Исполнители
+- `getAlbum(albumId, withTracks?)` — Получить альбом
+- `getAlbums(albumIds)` — Несколько альбомов
+- `getAlbumWithTracks(albumId)` — Альбом с треками
 
-- getArtist
-- getArtists
+### api.artists
 
-#### Станции
+- `getArtist(artistId)` — Информация об исполнителе
+- `getArtists(artistIds)` — Несколько исполнителей
+- `getArtistTracks(artistId, options?)` — Треки исполнителя
 
-- getAllStationsList
-- getRecomendedStationsList
-- getStationTracks
-- getStationInfo
+### api.playlists
+
+- `getPlaylist(playlistId, user?)` — Получить плейлист
+- `getPlaylists(playlistIds, user?, options?)` — Несколько плейлистов
+- `getUserPlaylists(userId)` — Плейлисты пользователя
+- `createPlaylist(name, options?)` — Создать плейлист
+- `removePlaylist(playlistId)` — Удалить плейлист
+- `renamePlaylist(playlistId, name)` — Переименовать плейлист
+- `addTracksToPlaylist(playlistId, tracks, revision, options?)` — Добавить треки
+- `removeTracksFromPlaylist(playlistId, tracks, revision, options?)` — Удалить треки
+
+### api.radio
+
+- `getAllStationsList(language?)` — Все станции
+- `getRecomendedStationsList()` — Рекомендованные станции
+- `getStationTracks(stationId, queue?)` — Треки станции
+- `getStationInfo(stationId)` — Информация о станции
+- `createRotorSession(seeds, includeTracksInResponse?)` — Создать ротор-сессию
+- `postRotorSessionTracks(sessionId, options)` — Получить треки сессии
+
+### api.user
+
+- `getLikedTracks(userId?)` — Понравившиеся треки
+- `getDislikedTracks(userId?)` — Непонравившиеся треки
+
+### api.queues
+
+- `getQueues()` — Все очереди
+- `getQueue(queueId)` — Конкретная очередь
 
 ### Обернутый API
 

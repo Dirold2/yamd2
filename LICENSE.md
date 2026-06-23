@@ -3,6 +3,7 @@ The MIT License (MIT)
 Copyright (c) 2014 Anton Petrov
 Copyright (c) 2020 Evgeny Kontsevoy
 Copyright (c) 2023 KotIsOff
+Copyright (c) 2025 Dirold2
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

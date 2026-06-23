@@ -12,13 +12,13 @@ async function main() {
   await api.init({ access_token, uid });
 
   // Получаем первую партию треков
-  const tracks = await api.getStationTracks(`track:29168781`);
+  const tracks = await api.radio.getStationTracks(`track:29168781`);
   const firstTrack = tracks.sequence?.[0]?.track;
   if (!firstTrack) throw new Error("No tracks returned from station");
   console.log(firstTrack.title);
 
   // Получаем следующую партию треков
-  const nextBatch = await api.getStationTracks(`track:${firstTrack.id}`);
+  const nextBatch = await api.radio.getStationTracks(`track:${firstTrack.id}`);
   const nextTrack = nextBatch.sequence?.[0]?.track;
   if (!nextTrack) throw new Error("No tracks returned in next batch");
   console.log("Next batch:", nextTrack.title);

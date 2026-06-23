@@ -7,25 +7,42 @@ const api = new YMApi();
   try {
     await api.init(config.user);
 
-    const searchResult = await api.search("gorillaz", { type: "artist" });
+    const searchResult = await api.search.query("gorillaz", { type: "artist" });
     const artist = searchResult.artists?.results[0];
     if (!artist?.id) throw new Error("Artist not found");
 
     let popularTrack = artist.popularTracks?.[0];
     if (!popularTrack) {
-      const filledArtist = await api.getArtist(artist.id);
+      const filledArtist = await api.artists.getArtist(artist.id);
       popularTrack = filledArtist.artist.popularTracks?.[0];
       if (!popularTrack) {
-        const artistTracks = await api.getArtistTracks(artist.id);
+        const artistTracks = await api.artists.getArtistTracks(artist.id);
         popularTrack = artistTracks.tracks?.[0];
       }
     }
     if (!popularTrack) throw new Error("Popular track not found");
 
     const trackId = popularTrack.id;
-    const track = await api.getTrack(trackId);
-    const supplement = await api.getTrackSupplement(trackId);
-    const downloadInfo = await api.getTrackDownloadInfo(trackId);
+    const track = await api.tracks.getTrack(trackId);
+    const downloadInfo = await api.tracks.getTrackDownloadInfo(trackId);
+
+    // New methods
+    const supplement = await api.tracks.getTrackSupplement(trackId);
+    console.log(`Supplement: ${(supplement.lyrics?.lyrics?.length ?? 0)} chars of lyrics`);
+
+    try {
+      const lyrics = await api.tracks.getTrackLyrics(trackId);
+      console.log(`Lyrics: ${lyrics.lyrics?.length ?? 0} chars`);
+    } catch {
+      console.log("Lyrics: not available");
+    }
+
+    try {
+      const trailer = await api.tracks.getTrackTrailer(trackId);
+      console.log(`Trailer: ${trailer.title ?? "none"}`);
+    } catch {
+      console.log("Trailer: not available");
+    }
 
     console.log(track);
 
@@ -35,7 +52,7 @@ const api = new YMApi();
 
     const hqTrack = mp3Tracks[0];
     const directLink = hqTrack
-      ? await api.getTrackDirectLink(hqTrack.downloadInfoUrl)
+      ? await api.tracks.getTrackDirectLink(hqTrack.downloadInfoUrl)
       : null;
 
     // Минималистичный успех

@@ -16,7 +16,7 @@ const uid = Number(process.env.YM_UID);
 
     const trackId = 118947620;
 
-    const track = await api.getTrackDownloadInfoNew(
+    const track = await api.tracks.getTrackDownloadInfoNew(
       trackId,
       Types.DownloadTrackQuality.Lossless,
       "flac,aac,he-aac,mp3,flac-mp4,aac-mp4,he-aac-mp4",

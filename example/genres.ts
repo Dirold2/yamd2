@@ -7,7 +7,7 @@ const api = new YMApi();
   try {
     await api.init(config.user);
 
-    const genres = (await api.getGenres()) as GetGenresResponse;
+    const genres = (await api.landing.getGenres()) as GetGenresResponse;
 
     if (!genres || genres.length === 0) {
       console.error("❌ No genres found");

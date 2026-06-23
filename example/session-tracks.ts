@@ -12,14 +12,14 @@ async function main() {
   await api.init({ access_token, uid });
 
   // Создаём сессию
-  const session = await api.createRotorSession(["user:onyourwave"]);
+  const session = await api.radio.createRotorSession(["user:onyourwave"]);
 
   if (!session.radioSessionId || !session.batchId) {
     throw new Error("Rotor session response is missing required fields");
   }
 
   // Получаем треки сессии
-  const tracks = await api.postRotorSessionTracks(session.radioSessionId, {
+  const tracks = await api.radio.postRotorSessionTracks(session.radioSessionId, {
     batchId: session.batchId
   });
 

@@ -16,7 +16,7 @@ const uid = Number(process.env.YM_UID);
 
     const trackId = 14329703;
 
-    const downloadInfo = await api.getTrackDownloadInfo(
+    const downloadInfo = await api.tracks.getTrackDownloadInfo(
       trackId,
       Types.DownloadTrackQuality.Lossless
     );

@@ -14,7 +14,7 @@ const api = new YMApi();
     ];
 
     for (const { q, type } of queries) {
-      const result = await api.search(q, { type });
+      const result = await api.search.query(q, { type });
       if (type === "artist" && result.artists?.results?.length) {
         console.log(
           `✔ Artist search "${q}" returned ${result.artists.results.length}`

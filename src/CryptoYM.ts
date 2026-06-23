@@ -47,12 +47,10 @@ export async function decryptData(params: {
     keyBytes as any,
     { name: "AES-CTR" },
     false,
-    ["encrypt", "decrypt"]
+    ["encrypt", "decrypt"],
   );
 
-  let counter: Uint8Array<ArrayBuffer> = new Uint8Array(
-    16
-  ) as Uint8Array<ArrayBuffer>;
+  let counter: Uint8Array<ArrayBuffer> = new Uint8Array(16) as Uint8Array<ArrayBuffer>;
 
   if (loadedBytes !== undefined) {
     const blockNumber = Math.floor(loadedBytes / 16);
@@ -63,10 +61,10 @@ export async function decryptData(params: {
     {
       name: "AES-CTR",
       counter: counter as any,
-      length: 128
+      length: 128,
     },
     cryptoKey,
-    data as any
+    data as any,
   );
 
   return decryptedData;

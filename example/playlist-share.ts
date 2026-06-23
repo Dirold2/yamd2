@@ -26,8 +26,8 @@ const api = new YMApi();
     const apiPlaylists = await Promise.all(
       playlistIds.map(({ id, user }) =>
         typeof id === "number"
-          ? api.getPlaylist(id, user ?? undefined)
-          : api.getPlaylist(id)
+          ? api.playlists.getPlaylist(id, user ?? undefined)
+          : api.playlists.getPlaylist(id)
       )
     );
 

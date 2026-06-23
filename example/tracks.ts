@@ -7,12 +7,12 @@ const api = new YMApi();
   try {
     await api.init(config.user);
 
-    const searchResult = await api.search("gorillaz", { type: "artist" });
+    const searchResult = await api.search.query("gorillaz", { type: "artist" });
     const artist = searchResult.artists?.results?.[0];
 
     if (!artist?.id) throw new Error("Artist not found");
 
-    const gorillazResult = await api.getArtistTracks(artist.id, {
+    const gorillazResult = await api.artists.getArtistTracks(artist.id, {
       pageSize: 15
     });
 

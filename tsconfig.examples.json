@@ -3,6 +3,7 @@
   "include": ["example/**/*"],
   "compilerOptions": {
     "noEmit": true,
-    "strict": true
+    "strict": true,
+    "types": ["node"]
   }
 }

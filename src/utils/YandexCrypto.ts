@@ -65,18 +65,14 @@ export class YandexCryptoHelper {
         } catch (err) {
           callback(err as Error);
         }
-      }
+      },
     });
   }
 
   /**
    * Расшифровывает файл целиком
    */
-  async decryptFile(
-    inputPath: string,
-    outputPath: string,
-    counter: number = 0
-  ): Promise<void> {
+  async decryptFile(inputPath: string, outputPath: string, counter: number = 0): Promise<void> {
     const fs = await import("fs/promises");
     const ciphertext = await fs.readFile(inputPath);
     const decrypted = this.decryptData(ciphertext, counter);

@@ -14,7 +14,7 @@ const api = new YMApi();
     console.log(`uid: ${token.uid}`);
     console.log(`token: ${token.access_token}`);
 
-    const status = await api.getAccountStatus();
+    const status = await api.account.getAccountStatus();
     if (!status?.account?.login) {
       throw new Error("Failed to fetch account status");
     }

@@ -8,7 +8,7 @@ const api = new YMApi();
   try {
     await api.init(config.user);
 
-    const feed = (await api.getFeed()) as GetFeedResponse;
+    const feed = (await api.account.getFeed()) as GetFeedResponse;
 
     if (
       (!feed.generatedPlaylists || feed.generatedPlaylists.length === 0) &&
