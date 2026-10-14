@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.3] — 2026-10-14
+
+### Changed
+
+- Updated `hyperttp` to `^0.5.6`, `@hyperttp/types` to `^0.4.2`, and `chalk` to `^6.0.1`.
+- Removed direct Bun and Undici transport dependencies.
+- Updated development dependencies: `@types/node` to `^26.6.5`, `oxfmt` to `^0.73.0`, `oxlint` to `^1.88.0`, and `tsx` to `^4.23.15`.
+
 ## [1.5.2] — 2026-08-27
 
 ### Changed
