@@ -11,4 +11,6 @@ export type Pin = {
   data?: PinData;
 };
 
-export type PinsListResponse = Pin[];
+export type PinsListResponse = {
+  pins: Pin[];
+};

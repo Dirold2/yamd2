@@ -1,4 +1,4 @@
-import { YMApi } from "../src";
+import { YMApi } from "../src/index.js";
 
 async function main() {
   const access_token = process.env.YM_ACCESS_TOKEN as string;

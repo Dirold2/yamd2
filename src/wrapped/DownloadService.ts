@@ -1,3 +1,4 @@
+import { createDecipheriv } from "node:crypto";
 import type {
   TrackId,
   TrackUrl,
@@ -7,10 +8,44 @@ import type {
   FileInfoResponseNew,
 } from "../Types/index.js";
 import { DownloadTrackCodec as DTC } from "../Types/index.js";
-import { DownloadError } from "../Types/index.js";
+import { DownloadError, DownloadInfoError } from "../Types/index.js";
 import { decryptData } from "../CryptoYM.js";
 
+function getEncryptionKey(response: FileInfoResponseNew): string {
+  const key = response.downloadInfo.key;
+  if (typeof key !== "string" || !/^(?:[0-9a-f]{32}|[0-9a-f]{48}|[0-9a-f]{64})$/i.test(key)) {
+    throw new DownloadInfoError("Encrypted track download requires a valid AES key");
+  }
+  return key;
+}
+
 export class DownloadService {
+  async *streamDownload(
+    response: FileInfoResponseNew,
+    source: AsyncIterable<Uint8Array>,
+  ): AsyncGenerator<Uint8Array> {
+    const info = response?.downloadInfo;
+    const url = info?.url ?? info?.urls?.[0];
+    if (!url) throw new DownloadInfoError("Track download URL missing");
+
+    if (!url.includes("/music-v2/crypt/")) {
+      yield* source;
+      return;
+    }
+
+    const key = Buffer.from(getEncryptionKey(response), "hex");
+    const decipher = createDecipheriv(`aes-${key.length * 8}-ctr`, key, Buffer.alloc(16));
+    try {
+      for await (const chunk of source) {
+        const decrypted = decipher.update(chunk);
+        if (decrypted.length > 0) yield decrypted;
+      }
+      const final = decipher.final();
+      if (final.length > 0) yield final;
+    } finally {
+      decipher.destroy();
+    }
+  }
   async getDownloadInfo(
     response: FileInfoResponseNew,
     track: TrackId | TrackUrl,
@@ -39,11 +74,14 @@ export class DownloadService {
       return base;
     }
 
-    const res = await fetch(downloadUrl);
-    const encryptedBytes = await res.arrayBuffer();
+    const keyHex = getEncryptionKey(response);
 
-    const keyHex = downloadInfo.key as string;
-    if (!keyHex) return base;
+    const res = await fetch(downloadUrl);
+    if (!res.ok) {
+      await res.body?.cancel().catch(() => {});
+      throw new Error(`Track download failed: HTTP ${res.status}`);
+    }
+    const encryptedBytes = await res.arrayBuffer();
 
     const decryptedBuffer = await decryptData({
       key: keyHex,

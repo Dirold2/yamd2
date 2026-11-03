@@ -1,4 +1,4 @@
-import { Types, WrappedYMApi, YMApi } from "../src";
+import { Types, WrappedYMApi, YMApi } from "../src/index.js";
 
 const WrappedApi = new WrappedYMApi();
 const api = new YMApi();

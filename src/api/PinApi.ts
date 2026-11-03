@@ -1,4 +1,4 @@
-import type { Pin } from "../Types/index.js";
+import type { PinsListResponse } from "../Types/index.js";
 import type { ApiContext } from "./ApiContext.js";
 
 export class PinApi {
@@ -10,7 +10,7 @@ export class PinApi {
    * @en Get user pinned entities.
    * @returns Promise with pinned items.
    */
-  getPins(): Promise<Pin[]> {
+  getPins(): Promise<PinsListResponse> {
     return this.ctx.getApi("/pins");
   }
 }

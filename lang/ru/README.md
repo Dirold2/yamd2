@@ -50,6 +50,7 @@ const api = new YMApi();
     await api.init({ access_token: "EXAMPLE_TOKEN", uid: 0 });
     const result = await api.search.query("gorillaz", { type: "artist" });
     const artist = result.artists?.results?.[0];
+    if (!artist) throw new Error("Исполнитель не найден");
     const tracks = await api.artists.getArtistTracks(artist.id);
     console.log(tracks);
   } catch (e) {
@@ -151,7 +152,11 @@ const api = new YMApi();
 
 #### Треки
 
-- getConcreteDownloadInfo
+- getDownloadInfo — Информация о загрузке с поддержкой кодеков
+- getDownloadUrl — Прямая ссылка или Blob URL расшифрованного файла
+- getBestDownloadUrl — Лучшая доступная ссылка по приоритету кодеков
+- getDownloadUrlForFFmpeg — Ссылка RAW MP3 для FFmpeg
+- `streamTrack(track, options?, signal?)` — Потоковая выдача raw или AES-CTR-расшифрованных данных без полной буферизации трека
 - getMp3DownloadInfo
 - getMp3DownloadUrl
 
@@ -177,50 +182,50 @@ const api = new YMApi();
 ### Загрузка треков
 
 ```js
-import { WrappedYMApi } from "yamd2";
+import { WrappedYMApi, Types } from "yamd2";
 
 const wrappedApi = new WrappedYMApi();
 await wrappedApi.init({ access_token: "TOKEN", uid: 123 });
 
 // Получить информацию для загрузки
-const downloadInfo = await wrappedApi.getDownloadInfo("123456", {
-  codec: "flac",
-  quality: "lossless"
+const downloadInfo = await wrappedApi.getDownloadInfo(123456, {
+  codec: Types.DownloadTrackCodec.FLAC,
+  quality: Types.DownloadTrackQuality.Lossless
 });
 
 // Получить прямую ссылку для загрузки
-const downloadUrl = await wrappedApi.getDownloadUrl("123456", {
-  codec: "flac",
-  quality: "lossless"
+const downloadUrl = await wrappedApi.getDownloadUrl(123456, {
+  codec: Types.DownloadTrackCodec.FLAC,
+  quality: Types.DownloadTrackQuality.Lossless
 });
 
 // Получить лучшую доступную ссылку (по приоритету кодеков)
-const bestUrl = await wrappedApi.getBestDownloadUrl("123456");
+const bestUrl = await wrappedApi.getBestDownloadUrl(123456);
 
 // Получить ссылку для FFmpeg (RAW MP3)
-const ffmpegUrl = await wrappedApi.getDownloadUrlForFFmpeg("123456");
+const ffmpegUrl = await wrappedApi.getDownloadUrlForFFmpeg(123456);
 ```
 
 ### Поддержка URL
 
 ```js
 // Все методы принимают как ID, так и URL
-const track = await wrappedApi.getTrack("123456");
+const track = await wrappedApi.getTrack(123456);
 const trackFromUrl = await wrappedApi.getTrack(
   "https://music.yandex.ru/track/123456"
 );
 
-const playlist = await wrappedApi.getPlaylist("123456");
+const playlist = await wrappedApi.getPlaylist(123456);
 const playlistFromUrl = await wrappedApi.getPlaylist(
   "https://music.yandex.ru/users/username/playlists/123456"
 );
 
-const album = await wrappedApi.getAlbum("123456");
+const album = await wrappedApi.getAlbum(123456);
 const albumFromUrl = await wrappedApi.getAlbum(
   "https://music.yandex.ru/album/123456"
 );
 
-const artist = await wrappedApi.getArtist("123456");
+const artist = await wrappedApi.getArtist(123456);
 const artistFromUrl = await wrappedApi.getArtist(
   "https://music.yandex.ru/artist/123456"
 );
@@ -230,16 +235,16 @@ const artistFromUrl = await wrappedApi.getArtist(
 
 ```js
 // MP3 загрузка
-const mp3Info = await wrappedApi.getMp3DownloadInfo("123456");
-const mp3Url = await wrappedApi.getMp3DownloadUrl("123456");
+const mp3Info = await wrappedApi.getMp3DownloadInfo(123456);
+const mp3Url = await wrappedApi.getMp3DownloadUrl(123456);
 
 // AAC загрузка
-const aacInfo = await wrappedApi.getAacDownloadInfo("123456");
-const aacUrl = await wrappedApi.getAacDownloadUrl("123456");
+const aacInfo = await wrappedApi.getAacDownloadInfo(123456);
+const aacUrl = await wrappedApi.getAacDownloadUrl(123456);
 
 // FLAC загрузка
-const flacInfo = await wrappedApi.getFlacDownloadInfo("123456");
-const flacUrl = await wrappedApi.getFlacDownloadUrl("123456");
+const flacInfo = await wrappedApi.getFlacDownloadInfo(123456);
+const flacUrl = await wrappedApi.getFlacDownloadUrl(123456);
 ```
 
 ## Поддерживаемые кодеки
@@ -286,7 +291,11 @@ try {
 
 ## Потоковое скачивание трека
 
-`api.tracks.streamTrack()` выдаёт байты direct-download ответа без буферизации трека целиком в памяти. Сначала получите прямую ссылку, затем обрабатывайте чанки `Uint8Array`:
+Есть два API для потоковой загрузки.
+
+### Потоковая загрузка по прямой ссылке
+
+`api.tracks.streamTrack()` выдаёт байты direct-download ответа без буферизации трека целиком. Сначала получите прямую ссылку, затем обрабатывайте чанки `Uint8Array`:
 
 ```ts
 const trackId = 14329703;
@@ -303,7 +312,28 @@ for await (const chunk of api.tracks.streamTrack(directUrl, controller.signal)) 
 }
 ```
 
-Поток работает в Bun и Node.js. Выход из цикла или отмена сигнала освобождают тело исходного ответа.
+### Потоковая загрузка через WrappedYMApi с расшифровкой
+
+`WrappedYMApi.streamTrack()` автоматически получает информацию о загрузке и выдаёт raw или AES-CTR-расшифрованные данные. Рекомендуется использовать его для зашифрованных кодеков, например FLAC и AAC:
+
+```ts
+import { Types, WrappedYMApi } from "yamd2";
+
+const wrappedApi = new WrappedYMApi();
+await wrappedApi.init({ access_token: "EXAMPLE_TOKEN", uid: 0 });
+
+const controller = new AbortController();
+for await (const chunk of wrappedApi.streamTrack(14329703, {
+  codec: Types.DownloadTrackCodec.FLACMP4,
+  quality: Types.DownloadTrackQuality.Lossless,
+}, controller.signal)) {
+  // Сохраните или обработайте расшифрованный chunk: Uint8Array
+}
+```
+
+По умолчанию используются MP3, качество lossless и `forceRaw: false`; конфигурация MP3 выбирает raw-транспорт. Параметры `codec`, `quality` и `forceRaw` задаются в `options`. Автоматического перебора кодеков у этого метода нет.
+
+Для зашифрованных загрузок метод проверяет AES-ключ до начала скачивания и не создаёт полный буфер файла или Blob URL. Сигнал отменяет запрос аудио, но не уже выполняющийся запрос метаданных. Выход из цикла закрывает исходный поток. Оба потоковых API работают в Bun и Node.js; низкоуровневый метод сам не расшифровывает байты.
 
 ## Особенности
 

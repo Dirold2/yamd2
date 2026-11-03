@@ -136,14 +136,19 @@ export class DeviceAuthApi {
         throw new Error("Device auth cancelled by caller");
       }
 
-      const token = await this.pollDeviceToken(code.deviceCode, options);
-      if (token) return token;
-
       if (Date.now() >= deadline) {
         throw new Error("Device auth timed out");
       }
 
-      await new Promise((resolve) => setTimeout(resolve, interval * 1000));
+      const token = await this.pollDeviceToken(code.deviceCode, options);
+
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) {
+        throw new Error("Device auth timed out");
+      }
+      if (token) return token;
+
+      await new Promise((resolve) => setTimeout(resolve, Math.min(interval * 1000, remaining)));
     }
   }
 }

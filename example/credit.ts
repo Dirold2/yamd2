@@ -1,5 +1,5 @@
-import { YMApi } from "../src";
-import config from "./config";
+import { YMApi } from "../src/index.js";
+import config from "./config.js";
 
 const api = new YMApi();
 
@@ -15,8 +15,9 @@ const api = new YMApi();
     // Get track credits
     const credits = await api.credits.getTrackCredits(track.id);
     console.log(`Credits for track "${track.title}":`);
-    console.log(`  Artists: ${credits.artists?.map((a: any) => a.name).join(", ")}`);
-    console.log(`  Composers: ${credits.composers?.map((c: any) => c.name).join(", ")}`);
+    for (const credit of credits.credits) {
+      console.log(`  ${credit.title}: ${credit.value}`);
+    }
 
     console.log("✔ Credit smoke test passed");
     process.exitCode = 0;

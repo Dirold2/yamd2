@@ -1,8 +1,7 @@
 import { resolveObjectURL } from "buffer";
-import { WrappedYMApi, YMApi } from "../src";
+import { WrappedYMApi } from "../src/index.js";
 
 const WrappedApi = new WrappedYMApi();
-const api = new YMApi();
 
 const access_token = process.env.YM_ACCESS_TOKEN as string;
 const uid = Number(process.env.YM_UID);
@@ -14,23 +13,23 @@ const uid = Number(process.env.YM_UID);
     }
 
     await WrappedApi.init({ access_token, uid });
-    await api.init({ access_token, uid });
 
     const trackId = 118618025;
 
-    const track = await WrappedApi.getBestDownloadUrl(Number(trackId));
+    const started = performance.now();
+    const track = await WrappedApi.getBestDownloadUrl(trackId);
 
-    if (track) {
-      console.log(track as string);
+    if (!track) throw new Error("Decrypted track URL not available");
 
-      const blob = resolveObjectURL(track as string);
-      const arrayBuffer = await blob?.arrayBuffer();
+    try {
+      const blob = resolveObjectURL(track);
+      if (!blob || blob.size === 0) throw new Error("Decrypted Blob not available or empty");
 
-      console.log(`\n \nDecrypted Blob\n`);
-      console.log(arrayBuffer, `\n`);
-    } else {
-      console.error("Decrypted buffer not available");
-      process.exitCode = 1;
+      console.log(
+        `✔ Decrypted Blob: ${blob.size} bytes (${Math.round(performance.now() - started)} ms)`,
+      );
+    } finally {
+      URL.revokeObjectURL(track);
     }
 
     process.exitCode = 0;

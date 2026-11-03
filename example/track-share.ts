@@ -1,5 +1,5 @@
-import { YMApi, WrappedYMApi } from "../src";
-import config from "./config";
+import { YMApi, WrappedYMApi } from "../src/index.js";
+import config from "./config.js";
 
 const api = new YMApi();
 const wrappedApi = new WrappedYMApi();

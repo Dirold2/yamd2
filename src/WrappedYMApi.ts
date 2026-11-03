@@ -22,7 +22,7 @@ import type {
   DownloadOptions,
 } from "./Types/index.js";
 import { DownloadTrackCodec as DTC } from "./Types/index.js";
-import { ExtractionError } from "./Types/index.js";
+import { ExtractionError, DownloadInfoError } from "./Types/index.js";
 import YMApi from "./YMApi.js";
 import { CODEC_CONFIG } from "./wrapped/CodecConfig.js";
 import { DownloadService } from "./wrapped/DownloadService.js";
@@ -120,6 +120,10 @@ export default class WrappedYMApi {
       return { id: playlist, user: userStr };
     }
 
+    if (/^(?:ar\.)?[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(playlist)) {
+      return { id: playlist, user: null };
+    }
+
     const extracted = this.urlExtractor.extractId(playlist, "playlist", "yandex");
 
     if ("uid" in extracted) {
@@ -158,6 +162,36 @@ export default class WrappedYMApi {
     );
 
     return this.downloadService.getDownloadInfo(response, track, codec, quality, encrypted);
+  }
+
+  /**
+   * Streams raw or AES-CTR-decrypted audio without buffering the complete file.
+   * Metadata is fetched first; the signal cancels the subsequent audio request.
+   */
+  async *streamTrack(
+    track: TrackId | TrackUrl,
+    options: DownloadOptions = {},
+    signal?: AbortSignal,
+  ): AsyncGenerator<Uint8Array> {
+    signal?.throwIfAborted();
+    const {
+      codec = DTC.MP3,
+      quality = "lossless" as DownloadTrackQuality,
+      forceRaw = false,
+    } = options;
+    const config = CODEC_CONFIG[codec];
+    const response = await this.api.tracks.getTrackDownloadInfoNew(
+      this.getTrackId(track),
+      quality,
+      config.codecs,
+      forceRaw ? "raw" : config.transport,
+    );
+    signal?.throwIfAborted();
+    const info = response?.downloadInfo;
+    const url = info?.url ?? info?.urls?.[0];
+    if (!url) throw new DownloadInfoError("Track download URL missing");
+
+    yield* this.downloadService.streamDownload(response, this.api.tracks.streamTrack(url, signal));
   }
 
   async getDownloadUrl(track: TrackId | TrackUrl, options: DownloadOptions = {}): Promise<string> {

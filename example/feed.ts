@@ -1,6 +1,6 @@
-import { YMApi } from "../src";
-import { GetFeedResponse } from "../src/Types";
-import config from "./config";
+import { YMApi } from "../src/index.js";
+import { GetFeedResponse } from "../src/Types/index.js";
+import config from "./config.js";
 
 const api = new YMApi();
 

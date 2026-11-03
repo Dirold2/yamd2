@@ -49,6 +49,7 @@ await api.init({ access_token: "EXAMPLE_TOKEN", uid: 0 });
 
 const searchResult = await api.search.query("gorillaz", { type: "artist" });
 const artist = searchResult.artists?.results?.[0];
+if (!artist) throw new Error("Artist not found");
 const tracks = await api.artists.getArtistTracks(artist.id);
 console.log(tracks);
 
@@ -57,13 +58,13 @@ const wrappedApi = new WrappedYMApi();
 await wrappedApi.init({ access_token: "EXAMPLE_TOKEN", uid: 0 });
 
 // Get track download info with codec support
-const downloadInfo = await wrappedApi.getDownloadInfo("123456", {
-  codec: "flac",
-  quality: "lossless"
+const downloadInfo = await wrappedApi.getDownloadInfo(123456, {
+  codec: Types.DownloadTrackCodec.FLAC,
+  quality: Types.DownloadTrackQuality.Lossless
 });
 
 // Get best available download URL
-const bestUrl = await wrappedApi.getBestDownloadUrl("123456");
+const bestUrl = await wrappedApi.getBestDownloadUrl(123456);
 
 // Support for URLs and IDs
 const track = await wrappedApi.getTrack("https://music.yandex.ru/track/123456");
@@ -113,6 +114,7 @@ Methods are organized into domain fields on the `YMApi` instance:
 - `getTrackDownloadInfoNew(trackId, quality?, codecs?, transport?)` — New API endpoint
 - `getTrackDirectLink(downloadUrl, short?)` — Resolve direct download link
 - `getTrackDirectLinkNew(trackUrl)` — Resolve new format direct link
+- `streamTrack(trackUrl, signal?)` — Stream direct response bytes without decryption or complete-file buffering
 - `getTrackShareLink(track)` — Generate share URL
 - `getSimilarTracks(trackId)` — Get similar tracks
 
@@ -210,8 +212,8 @@ Methods are organized into domain fields on the `YMApi` instance:
 
 ### api.credits
 
-- `getTrackCredits(trackId)` — Get track credits
-- `getClipCredits(clipId)` — Get clip credits
+- `getTrackCredits(trackId)` — Get `{ credits: { title: string; value: string }[] }`
+- `getClipCredits(clipId)` — Get clip credits in the same response format
 
 ### api.disclaimers
 
@@ -235,15 +237,7 @@ Methods are organized into domain fields on the `YMApi` instance:
 
 ### api.pins
 
-- `getPins()` — Get all pins
-- `pinAlbum(albumId)` — Pin album
-- `unpinAlbum(albumId)` — Unpin album
-- `pinArtist(artistId)` — Pin artist
-- `unpinArtist(artistId)` — Unpin artist
-- `pinPlaylist(uid, kind)` — Pin playlist
-- `unpinPlaylist(uid, kind)` — Unpin playlist
-- `pinWave(seeds)` — Pin wave
-- `unpinWave(seeds)` — Unpin wave
+- `getPins()` — Get `{ pins: Pin[] }`
 
 ### api.presaves
 
@@ -280,6 +274,8 @@ Enhanced API with additional features and convenience methods:
 - getDownloadInfo - Get download information with codec support
 - getDownloadUrl - Get direct download URL
 - getBestDownloadUrl - Get best available URL by codec priority
+- `streamTrack(track, options?, signal?)` — Stream raw or AES-CTR-decrypted track data without buffering the complete file
+- streamTrack(track, options?, signal?) - Stream raw or AES-CTR-decrypted audio without buffering the complete file
 - getDownloadUrlForFFmpeg - Get FFmpeg-compatible URL (RAW MP3)
 - getMp3DownloadInfo - Get MP3 download info
 - getMp3DownloadUrl - Get MP3 download URL
@@ -369,6 +365,10 @@ When using `getBestDownloadUrl()`, codecs are checked in priority order:
 
 ## Streaming Direct Track Downloads
 
+There are two streaming APIs:
+
+### Low-level direct URL streaming
+
 `api.tracks.streamTrack()` yields direct-download response bytes without buffering the complete track in memory. Obtain a direct URL first, then consume its `Uint8Array` chunks:
 
 ```ts
@@ -386,7 +386,28 @@ for await (const chunk of api.tracks.streamTrack(directUrl, controller.signal)) 
 }
 ```
 
-The stream works in Bun and Node.js. Breaking out of the loop or aborting the signal cancels the underlying response body.
+### Wrapped streaming with decryption
+
+`WrappedYMApi.streamTrack()` handles download metadata and streams raw or AES-CTR-decrypted audio. It is the recommended API for encrypted codecs such as FLAC and AAC:
+
+```ts
+import { Types, WrappedYMApi } from "yamd2";
+
+const wrappedApi = new WrappedYMApi();
+await wrappedApi.init({ access_token: "EXAMPLE_TOKEN", uid: 0 });
+
+const controller = new AbortController();
+for await (const chunk of wrappedApi.streamTrack(14329703, {
+  codec: Types.DownloadTrackCodec.FLACMP4,
+  quality: Types.DownloadTrackQuality.Lossless,
+}, controller.signal)) {
+  // Persist or process decrypted Uint8Array chunks
+}
+```
+
+The wrapped method defaults to MP3, lossless quality, and `forceRaw: false`; the MP3 configuration uses raw transport. Set `codec`, `quality`, or `forceRaw` through `options`. It selects the requested codec without automatic codec fallback.
+
+The wrapped method validates the AES key for encrypted downloads before fetching the audio and does not create a complete-file buffer or Blob URL. The signal cancels the audio request, not an in-flight metadata request. Breaking out of the loop cancels the underlying response body. Both streaming APIs work in Bun and Node.js; the low-level method does not decrypt encrypted bytes.
 
 ## Examples
 

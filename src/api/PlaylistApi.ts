@@ -206,7 +206,7 @@ export class PlaylistApi {
         {
           op: "delete",
           from: options.from ?? 0,
-          to: options.to ?? tracks.length,
+          to: options.to ?? (options.from ?? 0) + tracks.length,
           tracks,
         },
       ]),

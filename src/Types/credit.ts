@@ -1,7 +1,8 @@
 export type Credit = {
-  name: string;
-  role: string;
-  participants?: Array<{ name: string; role: string }>;
+  title: string;
+  value: string;
 };
 
-export type CreditsResponse = Credit[];
+export type CreditsResponse = {
+  credits: Credit[];
+};

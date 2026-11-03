@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.6.0] — 2026-11-03
+
+### Fixed
+
+- Example imports now use explicit ESM paths so the full examples typecheck passes.
+- Credit and pin response types now match the API object wrappers (`credits` and `pins`); credit entries use `title` and `value`.
+- Playlist track removal now calculates the default end position relative to the starting offset.
+- Track streaming cancels HTTP error bodies and releases the reader lock even when cancellation fails.
+- Wrapped playlist lookup now accepts bare UUIDs, including `ar.`-prefixed IDs.
+- Device authorization checks its deadline before and after polling and limits polling delays to the remaining time.
+- Encrypted track downloads now reject missing or invalid AES keys before fetching the audio file, allowing codec fallback without wasting bandwidth.
+- Encrypted track downloads now reject unsuccessful HTTP responses before reading or decrypting the body.
+
+### Added
+
+- `WrappedYMApi.streamTrack(track, options?, signal?)` streams raw or AES-CTR-decrypted audio without buffering the complete file; early termination cancels the audio response.
+- Offline regression tests for playlist removal, streaming cleanup, playlist identifiers, device authorization deadlines, and download errors.
+
 ## [1.5.3] — 2026-10-14
 
 ### Changed

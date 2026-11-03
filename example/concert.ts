@@ -1,5 +1,5 @@
-import { YMApi } from "../src";
-import config from "./config";
+import { YMApi } from "../src/index.js";
+import config from "./config.js";
 
 const api = new YMApi();
 

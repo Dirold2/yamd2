@@ -191,6 +191,9 @@ export class TrackApi {
     const response = await this.ctx.httpClient.stream(trackUrl, undefined, signal);
 
     if (!response.ok) {
+      if (response.data instanceof ReadableStream) {
+        await response.data.cancel().catch(() => {});
+      }
       throw new Error(`Track download failed: HTTP ${response.status}`);
     }
 
@@ -211,10 +214,13 @@ export class TrackApi {
         yield value instanceof Uint8Array ? value : new Uint8Array(value);
       }
     } finally {
-      if (!completed) {
-        await reader.cancel();
+      try {
+        if (!completed) {
+          await reader.cancel();
+        }
+      } finally {
+        reader.releaseLock();
       }
-      reader.releaseLock();
     }
   }
 

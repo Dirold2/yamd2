@@ -1,5 +1,5 @@
-import { YMApi } from "../src";
-import config from "./config";
+import { YMApi } from "../src/index.js";
+import config from "./config.js";
 
 const api = new YMApi();
 
@@ -9,7 +9,7 @@ const api = new YMApi();
 
     // Get pins
     const pins = await api.pins.getPins();
-    console.log(`Pins: ${pins.pins?.length ?? 0} pinned`);
+    console.log(`Pins: ${pins.pins.length} pinned`);
 
     console.log("✔ Pin smoke test passed");
     process.exitCode = 0;
