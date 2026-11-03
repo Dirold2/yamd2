@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["authRequest.js"],
+  "sourcesContent": ["import { Request } from \"hyperttp\";\nimport config from \"./config.js\";\nexport default function authRequest() {\n    return new Request(config.authApi);\n}\n"],
+  "mappings": "aAAA,OAAS,WAAAA,MAAe,WACxB,OAAOC,MAAY,cACnB,wBAAwBC,GAAc,CAClC,OAAO,IAAIF,EAAQC,EAAO,OAAO,CACrC",
+  "names": ["Request", "config", "authRequest"]
+}
