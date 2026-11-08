@@ -43,7 +43,10 @@ export class AlbumApi {
    */
   getAlbums(albumIds: AlbumId[]): Promise<Album[]> {
     return this.ctx.post(
-      this.ctx.createRequest("/albums").setBodyData({ albumIds: albumIds.join() }),
+      this.ctx
+        .createRequest("/albums")
+        .addHeaders({ "content-type": "application/x-www-form-urlencoded" })
+        .setBodyData(new URLSearchParams({ albumIds: albumIds.join(",") })),
     );
   }
 

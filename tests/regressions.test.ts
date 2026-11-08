@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { test, type TestContext } from "node:test";
 import WrappedYMApi from "../src/WrappedYMApi.js";
 import type YMApi from "../src/YMApi.js";
-import type { ApiContext } from "../src/api/ApiContext.js";
+import { ApiContext } from "../src/api/ApiContext.js";
+import { AlbumApi } from "../src/api/AlbumApi.js";
+import type { HyperClient } from "hyperttp";
 import { DeviceAuthApi } from "../src/api/DeviceAuthApi.js";
 import { PlaylistApi } from "../src/api/PlaylistApi.js";
 import { TrackApi } from "../src/api/TrackApi.js";
@@ -15,6 +17,21 @@ import {
   type Playlist,
 } from "../src/Types/index.js";
 import { DownloadService } from "../src/wrapped/DownloadService.js";
+
+test("AlbumApi.getAlbums sends form-encoded album IDs", async () => {
+  const albums = [{ id: 12 }, { id: 34 }];
+  const client = {
+    async post(url: string, body: unknown, options: { headers: Record<string, string> }) {
+      assert.equal(new URL(url).pathname, "/albums");
+      assert.equal(options.headers["content-type"], "application/x-www-form-urlencoded");
+      assert.equal(body, "albumIds=12%2C34");
+      assert.equal(new URLSearchParams(body as string).get("albumIds"), "12,34");
+      return { result: albums };
+    },
+  } as unknown as HyperClient;
+
+  assert.equal(await new AlbumApi(new ApiContext(client)).getAlbums([12, 34]), albums);
+});
 
 // These tests mutate globals only within sequential top-level tests; test mocks
 // restore them after each test, including when an assertion fails.
