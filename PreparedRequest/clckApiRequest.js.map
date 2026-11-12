@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["clckApiRequest.js"],
+  "sourcesContent": ["import { Request } from \"hyperttp\";\nimport config from \"./config.js\";\nexport default function apiRequest() {\n    return new Request(config.clckApi);\n}\n"],
+  "mappings": "aAAA,OAAS,WAAAA,MAAe,WACxB,OAAOC,MAAY,cACnB,wBAAwBC,GAAa,CACjC,OAAO,IAAIF,EAAQC,EAAO,OAAO,CACrC",
+  "names": ["Request", "config", "apiRequest"]
+}

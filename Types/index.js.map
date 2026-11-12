@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["index.js"],
+  "sourcesContent": ["export { YMApiError, AuthError, TrackNotFoundError, DownloadInfoError, InvalidUrlError, ExtractionError, DownloadError, } from \"./errors.js\";\nexport { DownloadTrackQuality, DownloadTrackCodec } from \"./track.js\";\n"],
+  "mappings": "aAAA,OAAS,WAAY,UAAW,mBAAoB,kBAAmB,gBAAiB,gBAAiB,kBAAsB,cAC/H,OAAS,qBAAsB,uBAA0B",
+  "names": []
+}

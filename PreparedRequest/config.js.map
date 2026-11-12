@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["config.js"],
+  "sourcesContent": ["export default {\n    api: {\n        host: \"api.music.yandex.net\",\n        port: 443,\n        scheme: \"https\",\n    },\n    authApi: {\n        host: \"oauth.yandex.ru\",\n        port: 443,\n        scheme: \"https\",\n    },\n    clckApi: {\n        host: \"clck.ru\",\n        port: 443,\n        scheme: \"https\",\n    },\n    oauth: {\n        CLIENT_ID: \"23cabbbdc6cd418abb4b39c32c41195d\",\n        CLIENT_SECRET: \"53bc75238f0c4d08a118e51fe9203300\",\n    },\n    fake_device: {\n        DEVICE_ID: \"377c5ae26b09fccd72deae0a95425559\",\n        UUID: \"3cfccdaf75dcf98b917a54afe50447ba\",\n        PACKAGE_NAME: \"ru.yandex.music\",\n    },\n    client: {\n        USER_AGENT: \"YandexMusicDesktopAppWindows/5.23.2\",\n    },\n};\n"],
+  "mappings": "aAAA,cAAe,CACX,IAAK,CACD,KAAM,uBACN,KAAM,IACN,OAAQ,OACZ,EACA,QAAS,CACL,KAAM,kBACN,KAAM,IACN,OAAQ,OACZ,EACA,QAAS,CACL,KAAM,UACN,KAAM,IACN,OAAQ,OACZ,EACA,MAAO,CACH,UAAW,mCACX,cAAe,kCACnB,EACA,YAAa,CACT,UAAW,mCACX,KAAM,mCACN,aAAc,iBAClB,EACA,OAAQ,CACJ,WAAY,qCAChB,CACJ",
+  "names": []
+}
