@@ -49,7 +49,10 @@ function unwrapApiResponse<T>(response: ApiResponse<T> | null | undefined): T {
       );
     }
 
-    throw new YMApiError("Yandex Music API response is missing the result field", "INVALID_RESPONSE");
+    throw new YMApiError(
+      "Yandex Music API response is missing the result field",
+      "INVALID_RESPONSE",
+    );
   }
 
   return response.result;
@@ -160,10 +163,14 @@ export class ApiContext {
   }
 
   async post<T>(request: Request, responseType: ResponseType = "json"): Promise<T> {
-    const response = await this.httpClient.post<ApiResponse<T>>(request.url, serializeRequestBody(request.body), {
-      headers: request.headers,
-      responseType,
-    });
+    const response = await this.httpClient.post<ApiResponse<T>>(
+      request.url,
+      serializeRequestBody(request.body),
+      {
+        headers: request.headers,
+        responseType,
+      },
+    );
     return unwrapApiResponse(response);
   }
 
