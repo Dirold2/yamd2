@@ -1,6 +1,6 @@
 {
   "name": "yamd2",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "A Node.js wrapper for the Yandex.Music API (Unofficial) http://music.yandex.ru",
   "type": "module",
   "main": "dist/index.js",
@@ -30,7 +30,7 @@
     "chalk": "^6.0.1",
     "crypto": "^1.0.1",
     "fast-xml-parser": "^5.12.1",
-    "hyperttp": "^0.7.6"
+    "hyperttp": "^0.7.9"
   },
   "devDependencies": {
     "@dirold2/dev-tools": "^1.1.3",
