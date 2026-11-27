@@ -1,6 +1,6 @@
 {
   "name": "yamd2",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "A Node.js wrapper for the Yandex.Music API (Unofficial) http://music.yandex.ru",
   "type": "module",
   "main": "dist/index.js",
@@ -30,11 +30,11 @@
     "chalk": "^6.0.1",
     "crypto": "^1.0.1",
     "fast-xml-parser": "^5.12.1",
-    "hyperttp": "^0.7.9"
+    "hyperttp": "^0.7.10"
   },
   "devDependencies": {
     "@dirold2/dev-tools": "^1.1.3",
-    "@types/node": "^26.6.6",
+    "@types/node": "^26.6.11",
     "dotenv-cli": "^11.1.0",
     "esbuild": "^0.28.2",
     "oxfmt": "^0.80.0",
@@ -43,7 +43,10 @@
     "typescript": "^7.0.2"
   },
   "scripts": {
-    "build": "tsc && esbuild 'dist/**/*.js' --outdir=dist --allow-overwrite --minify --sourcemap && d-build",
+    "clean": "node --input-type=module -e 'import { rmSync } from \"node:fs\"; rmSync(\"dist\", { recursive: true, force: true });'",
+    "clean:maps": "node --input-type=module -e 'import { existsSync, readdirSync, rmSync } from \"node:fs\"; import { join } from \"node:path\"; const walk = dir => { for (const entry of readdirSync(dir, { withFileTypes: true })) { const path = join(dir, entry.name); if (entry.isDirectory()) walk(path); else if (entry.isFile() && path.endsWith(\".map\")) rmSync(path); } }; if (existsSync(\"dist\")) walk(\"dist\");'",
+    "d-esbuild": "esbuild \"dist/**/*.js\" --outdir=dist --allow-overwrite --minify",
+    "build": "bun run clean && tsc && bun run d-esbuild && d-build && bun run clean:maps",
     "dist": "d-dist",
     "deploy": "npm run build && npm run dist",
     "pub": "d-publish",
@@ -52,7 +55,9 @@
     "lint:fix": "oxlint src --fix",
     "format": "oxfmt src",
     "format:check": "oxfmt src --check",
-    "smoke:xml": "tsx example/smoke-xml-parse.ts",
+    "test:regressions": "node --import tsx --test tests/regressions.test.ts",
+    "test:stream-download": "node --import tsx --test tests/stream-download.test.ts",
+    "test": "npm run test:regressions && npm run test:stream-download",
     "smoke:token": "dotenv -e .env -- tsx example/token.ts",
     "smoke:artist": "dotenv -e .env -- tsx example/artist.ts",
     "smoke:album": "dotenv -e .env -- tsx example/album.ts",
@@ -72,12 +77,10 @@
     "smoke:track": "dotenv -e .env -- tsx example/track.ts",
     "smoke:track-share": "dotenv -e .env -- tsx example/track-share.ts",
     "smoke:raw-track": "dotenv -e .env -- tsx example/raw-track.ts",
-    "smoke:get-track": "dotenv -e .env -- tsx example/get-track.ts",
     "smoke:tracks": "dotenv -e .env -- tsx example/tracks.ts",
     "smoke:user-likes": "dotenv -e .env -- tsx example/user-likes.ts",
     "smoke:track-wrapped": "dotenv -e .env -- tsx example/track-wrapped.ts",
     "smoke:summary": "tsx smoke-runner.ts",
-    "smoke:station-new": "dotenv -e .env -- tsx example/station-new.ts",
     "smoke:search": "dotenv -e .env -- tsx example/search.ts",
     "smoke:station-tracks": "dotenv -e .env -- tsx example/station-tracks.ts",
     "smoke:create-rotor-session": "dotenv -e .env -- tsx example/create-rotor-session.ts",
